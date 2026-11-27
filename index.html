@@ -628,7 +628,7 @@
       if (p && typeof p.catch === "function") p.catch(fallback);
     }
     clearTimeout(splashTimer);
-    splashTimer = setTimeout(endSplash, 4200); /* ~video length + buffer; also the slow-load escape */
+    splashTimer = setTimeout(endSplash, 5200); /* ~video length + buffer; also the slow-load escape */
     var scr = $("#screen-splash");
     if (scr) scr.addEventListener("click", endSplash);
   }
