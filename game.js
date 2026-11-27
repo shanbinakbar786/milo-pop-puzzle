@@ -16,7 +16,10 @@
  *     newGame(difficulty, opts?)   // 'easy' | 'medium'; opts.board = an 8x8
  *                                   // array of colour indices (0=empty,
  *                                   // 1..6) to start pre-filled (Adventure
- *                                   // seeded boards). No opts = empty board
+ *                                   // seeded boards); opts.firstPieceKey =
+ *                                   // a shape key ('square2') forced into
+ *                                   // the first tray's slot 0 (tutorial
+ *                                   // level only). No opts = empty board
  *                                   // (Classic / Daily / Weekly / Relax).
  *     canPlace(pieceIndex, row, col) -> bool
  *     placePiece(pieceIndex, row, col) -> result object or { ok:false, reason }
@@ -406,6 +409,21 @@
     history = [];
     heldPiece = null;
     holdUsedThisTurn = false;
+    // opts.firstPieceKey (optional, additive — 27 Nov 2026): force one shape
+    // into the FIRST tray (slot 0), e.g. 'square2' for the Adventure
+    // tutorial level, whose cross board has a 2x2 hole waiting for it.
+    // Only applied when the shape exists AND fits somewhere on the board
+    // (the cross hole guarantees it); otherwise the fairly-dealt tray
+    // stands. The next tray is dealt normally — this is a one-time
+    // tutorial setup, not a rigged feed.
+    if (opts && opts.firstPieceKey && SHAPES[opts.firstPieceKey]) {
+      var forced = {
+        key: opts.firstPieceKey,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        cells: SHAPES[opts.firstPieceKey].map(function (c) { return [c[0], c[1]]; })
+      };
+      if (pieceFitsAnywhere(board, forced)) state.tray[0] = forced;
+    }
     emit({ type: 'newgame', difficulty: difficulty, state: getState() });
     emit({ type: 'tray', tray: state.tray.map(clonePiece), nextTray: state.nextTray.map(clonePiece) });
     return getState();

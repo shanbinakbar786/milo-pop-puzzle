@@ -538,6 +538,53 @@ body::after {
     inset -2px 0 3px rgba(0, 0, 0, 0.16),
     0 3px 8px rgba(0, 0, 0, 0.4);
 }
+
+/* ---------- tutorial hand (first game only, Block Blast style) ----------
+   A big pointing hand that glides from the tray piece to the board target.
+   Lives outside #app, position:fixed, pointer-events:none — it can never
+   block a drag. Starts off-screen so it never flashes at the corner
+   before the first trip positions it. width:max-content + flex column so
+   the hand shrink-to-fits its emoji + hint bubble (a plain fixed block
+   would stretch full-width and the -50% centering would shove it
+   off-screen — the exact bug found live 27 Nov 2026). */
+#tut-hand {
+  position: fixed;
+  left: -200px;
+  top: -200px;
+  z-index: 9998; /* just under the drag-float clone (9999) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: max-content;
+  margin: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+#tut-hand[hidden] { display: none; }
+.tut-hand-emoji {
+  font-size: 46px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(10, 2, 35, 0.45));
+  animation: tutBob 0.45s ease-in-out infinite alternate;
+}
+@keyframes tutBob {
+  from { transform: translateY(0) rotate(-10deg); }
+  to { transform: translateY(-9px) rotate(6deg); }
+}
+.tut-hand-text {
+  display: inline-block;
+  margin-top: 4px;
+  background: rgba(20, 5, 50, 0.88);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--gold-2);
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
 .piece .mini.empty { background: transparent; box-shadow: none; }
 .board-foot { margin-top: 10px; font-size: 14px; font-weight: 700; opacity: 0.85; }
 .board-foot b { color: #ffd23e; }

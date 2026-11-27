@@ -195,11 +195,42 @@
     return false;
   }
 
+  /* Block Blast's first level (owner order, 27 Nov 2026 — from the
+     screenshots he sent): a cross (+) of red + gold blocks with an empty
+     2x2 hole in the center. Easy World 1 Level 1 ONLY — the tutorial level.
+     1-based rows/cols as the player sees them: vertical bar cols 4-5,
+     rows 1-6; horizontal bar rows 4-5, cols 1-8; center 2x2 (rows 4-5,
+     cols 4-5) left EMPTY for the tray's 2x2 piece. Colour indices are the
+     engine's (red = 1, yellow = 3): top of the vertical bar red, then gold;
+     sides red with gold next to the center. The tutorial placement fills
+     rows 4-5 at once — 2 lines, combo x2, 4 (placement) + 40 (clear) = 44
+     points, a big opening pop; the Reach-60 goal then needs a couple more
+     small placements. (The columns are NOT completed by the 2x2 — the bar
+     is rows 1-6, so cols 4-5 still have rows 7-8 empty. Verified by test.) */
+  var CROSS_HOLE = { row: 3, col: 3 }; /* 0-based anchor of the empty 2x2 */
+  function crossBoardL1() {
+    var b = [];
+    for (var r = 0; r < 8; r++) b.push([0, 0, 0, 0, 0, 0, 0, 0]);
+    var RED = 1, GOLD = 3;
+    /* vertical bar, cols 3-4 (0-based): rows 0-1 red, row 2 gold, row 5 gold */
+    b[0][3] = RED; b[0][4] = RED;
+    b[1][3] = RED; b[1][4] = RED;
+    b[2][3] = GOLD; b[2][4] = GOLD;
+    b[5][3] = GOLD; b[5][4] = GOLD;
+    /* horizontal bar, rows 3-4: cols 0-1 red, col 2 gold, col 5 gold, cols 6-7 red */
+    [3, 4].forEach(function (r) {
+      b[r][0] = RED; b[r][1] = RED; b[r][2] = GOLD;
+      b[r][5] = GOLD; b[r][6] = RED; b[r][7] = RED;
+    });
+    return b; /* rows 3-4, cols 3-4 stay 0 — the hole */
+  }
+
   /* Deterministic starting board for an Adventure level: an 8x8 array of
      colour indices (0 = empty, 1..6 = jewel colours), exactly like the
      engine's board format. Pure function — same def always gives the same
      board. attempt is internal (re-seed on a failed solvability check). */
   function seedBoard(def, attempt) {
+    if (def.diff === "easy" && def.world === 1 && def.num === 1) return crossBoardL1();
     attempt = attempt | 0;
     var rng = mulberry32(fnv1a(def.key + "#" + attempt));
     var target = seedTargetCells(def.diff, def.world) + (Math.floor(rng() * 3) - 1);
@@ -414,6 +445,7 @@
     starsFor: starsFor,
     seedBoard: seedBoard,
     seedTargetCells: seedTargetCells,
+    CROSS_HOLE: CROSS_HOLE,
     SHAPES: FULL_SHAPES,
     getProgress: getProgress,
     recordResult: recordResult,

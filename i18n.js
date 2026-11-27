@@ -122,7 +122,8 @@ window.MILO_I18N = {
     termsDecline: "Decline",
     termsNeedAccept: "Please accept the Terms to play.",
     tapToContinue: "Tap to continue",
-    termsLink: "Terms & Conditions"
+    termsLink: "Terms & Conditions",
+    tutDragHere: "Drag the piece here!"
   },
   ur: {
     play: "کھیلو",
@@ -244,7 +245,8 @@ window.MILO_I18N = {
     termsDecline: "انکار کریں",
     termsNeedAccept: "کھیلنے کے لیے شرائط قبول کریں۔",
     tapToContinue: "جاری رکھنے کے لیے تھپتھپائیں",
-    termsLink: "شرائط و ضوابط"
+    termsLink: "شرائط و ضوابط",
+    tutDragHere: "ڈبہ یہاں گھسیٹیں!"
   },
   es: {
     play: "JUGAR",
@@ -366,7 +368,8 @@ window.MILO_I18N = {
     termsDecline: "Rechazar",
     termsNeedAccept: "Acepta los Términos para jugar.",
     tapToContinue: "Toca para continuar",
-    termsLink: "Términos y condiciones"
+    termsLink: "Términos y condiciones",
+    tutDragHere: "¡Arrastra la pieza aquí!"
   },
   fr: {
     play: "JOUER",
@@ -488,7 +491,8 @@ window.MILO_I18N = {
     termsDecline: "Refuser",
     termsNeedAccept: "Accepte les conditions pour jouer.",
     tapToContinue: "Touchez pour continuer",
-    termsLink: "Conditions générales"
+    termsLink: "Conditions générales",
+    tutDragHere: "Glisse la pièce ici !"
   },
   pt: {
     play: "JOGAR",
@@ -610,7 +614,8 @@ window.MILO_I18N = {
     termsDecline: "Recusar",
     termsNeedAccept: "Aceite os Termos para jogar.",
     tapToContinue: "Toque para continuar",
-    termsLink: "Termos e Condições"
+    termsLink: "Termos e Condições",
+    tutDragHere: "Arraste a peça aqui!"
   },
   de: {
     play: "SPIELEN",
@@ -732,7 +737,8 @@ window.MILO_I18N = {
     termsDecline: "Ablehnen",
     termsNeedAccept: "Bitte akzeptiere die Bedingungen, um zu spielen.",
     tapToContinue: "Tippen zum Fortfahren",
-    termsLink: "Nutzungsbedingungen"
+    termsLink: "Nutzungsbedingungen",
+    tutDragHere: "Ziehe den Stein hierher!"
   },
   ar: {
     play: "العب",
@@ -854,7 +860,8 @@ window.MILO_I18N = {
     termsDecline: "رفض",
     termsNeedAccept: "يرجى قبول الشروط للعب.",
     tapToContinue: "انقر للمتابعة",
-    termsLink: "الشروط والأحكام"
+    termsLink: "الشروط والأحكام",
+    tutDragHere: "اسحب القطعة إلى هنا!"
   },
   zh: {
     play: "开始",
@@ -976,7 +983,8 @@ window.MILO_I18N = {
     termsDecline: "拒绝",
     termsNeedAccept: "请接受条款后开始游戏。",
     tapToContinue: "点击继续",
-    termsLink: "条款与条件"
+    termsLink: "条款与条件",
+    tutDragHere: "把方块拖到这里！"
   },
   hi: {
     play: "खेलें",
@@ -1098,7 +1106,8 @@ window.MILO_I18N = {
     termsDecline: "अस्वीकार करें",
     termsNeedAccept: "खेलने के लिए नियम स्वीकार करें।",
     tapToContinue: "जारी रखने के लिए टैप करें",
-    termsLink: "नियम और शर्तें"
+    termsLink: "नियम और शर्तें",
+    tutDragHere: "टुकड़े को यहाँ खींचें!"
   },
   tr: {
     play: "OYNA",
@@ -1220,7 +1229,8 @@ window.MILO_I18N = {
     termsDecline: "Reddet",
     termsNeedAccept: "Oynamak için Şartları kabul edin.",
     tapToContinue: "Devam etmek için dokunun",
-    termsLink: "Şartlar ve Koşullar"
+    termsLink: "Şartlar ve Koşullar",
+    tutDragHere: "Parçayı buraya sürükle!"
   }
 };
 

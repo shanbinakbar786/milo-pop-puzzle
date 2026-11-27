@@ -448,6 +448,15 @@
   <div class="toast" id="toast" role="status"></div>
 </div>
 
+<!-- Tutorial hand (Block Blast style): a pointing hand that travels from
+     the tray piece to the board target on the player's very first game.
+     pointer-events:none — it can never block a drag. Lives outside #app
+     so no screen can clip it. -->
+<div id="tut-hand" hidden>
+  <div class="tut-hand-emoji">👆</div>
+  <div class="tut-hand-text"><span data-i18n="tutDragHere">Drag the piece here!</span></div>
+</div>
+
 <script>
 /* ============================================================
    Milo Pop Puzzle — UI layer (Agent 2).
@@ -569,6 +578,7 @@
     var el = $("#screen-" + name);
     if (el) el.classList.add("active");
     if (name === "board") fitTrayPieces();
+    else tutHide(); /* leaving the board hides the tutorial hand (un-done) */
   }
 
   /* ---------- opening flow: splash -> Terms -> Home ----------
@@ -912,6 +922,140 @@
     }
   }
 
+  /* ---------- tutorial hand (first game only, Block Blast style) ----------
+     Brand-new players get a big pointing hand (👆) that travels from the
+     tray piece they should drag to the board cells where it belongs, with
+     the target cells highlighted. Shown ONLY on the very first Classic game
+     and the very first Adventure level (Easy W1 L1, the cross tutorial);
+     the moment the player places their first piece, the flag is stored and
+     the hand never appears again in that mode. Daily/Weekly/Relax never
+     show it. The hand is pointer-events:none and purely visual — it can
+     never block a drag or trap the player: if the target cannot be found
+     (tray changed, hint empty), it simply hides and the game plays on. */
+  var tut = null; /* { mode, pieceIndex, row, col, piece, anim, timer } */
+
+  function tutDone(mode) { return store.get("tut_" + mode, "") === "done"; }
+  function tutMarkDone(mode) { store.set("tut_" + mode, "done"); }
+
+  function tutHide() {
+    if (tut && tut.anim) { try { tut.anim.cancel(); } catch (e) { /* ignore */ } }
+    if (tut && tut.timer) clearTimeout(tut.timer);
+    tut = null;
+    var hand = $("#tut-hand");
+    if (hand) {
+      hand.hidden = true;
+      var txt = hand.querySelector(".tut-hand-text");
+      if (txt) txt.style.transform = "";
+    }
+    highlightTarget(null, null, null);
+  }
+
+  function tutTrayCenter(pieceIndex) {
+    var el = trayEl.querySelector('[data-piece-index="' + pieceIndex + '"]');
+    if (!el) return null;
+    var r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) return null;
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  function tutTargetCenter(row, col, piece) {
+    if (!piece || !cells.length) return null;
+    /* The engine's drag anchors a piece by the board cell under the
+       pointer — its TOP-LEFT cell — so the hand must point at the ANCHOR
+       cell's center, not the middle of the whole footprint. Pointing at
+       the footprint center lands exactly on a cell boundary for even-sized
+       pieces (the 2x2 cross hole): floor() then picks the bottom-right
+       cell as the anchor, which does not fit, and the drop bounces back.
+       Found live 27 Nov 2026: dragging the 2x2 to the hole's center
+       computed anchor (4,4), canPlace false, score stayed 0. */
+    var a = cells[row * 8 + col];
+    if (!a) return null;
+    var ra = a.getBoundingClientRect();
+    return { x: ra.left + ra.width / 2, y: ra.top + ra.height / 2 };
+  }
+
+  /* One trip: hand starts on the tray piece, glides to the target cells,
+     then glides back — then the loop re-measures (the tray may have
+     re-rendered) and trips again until the player places a piece. */
+  function tutTrip() {
+    if (!tut) return;
+    var hand = $("#tut-hand");
+    if (!hand) return;
+    var from = tutTrayCenter(tut.pieceIndex);
+    var to = tutTargetCenter(tut.row, tut.col, tut.piece);
+    if (!from || !to) { tutHide(); return; } /* tray changed — give up quietly */
+    hand.style.left = from.x + "px";
+    hand.style.top = from.y + "px";
+    /* Keep the hint bubble on screen: the hand itself must stay exactly
+       on its tray/board points, but the bubble is ~160px wide, so near
+       the left/right edge it would clip (Classic targets in column 0
+       lost the "D" of "Drag"). Slide ONLY the bubble, by the amount the
+       trip's nearer end would overflow, so it stays readable while the
+       pointing hand never moves off target. */
+    var txt = hand.querySelector(".tut-hand-text");
+    if (txt) {
+      var hw = hand.offsetWidth || 0;
+      var vw = window.innerWidth || 390;
+      var lo = Math.min(from.x, to.x) - hw / 2, hi = Math.max(from.x, to.x) + hw / 2;
+      var shift = 0;
+      if (lo < 8) shift = 8 - lo;
+      else if (hi > vw - 8) shift = (vw - 8) - hi;
+      txt.style.transform = shift ? "translateX(" + shift + "px)" : "";
+    }
+    var dx = to.x - from.x, dy = to.y - from.y;
+    try {
+      tut.anim = hand.animate([
+        { transform: "translate(-50%,-50%) translate(0px, 0px)" },
+        { transform: "translate(-50%,-50%) translate(" + dx + "px, " + dy + "px)", offset: 0.55 },
+        { transform: "translate(-50%,-50%) translate(0px, 0px)" }
+      ], { duration: 1800, easing: "ease-in-out", iterations: 1 });
+      tut.anim.onfinish = function () { if (tut) tut.timer = setTimeout(tutTrip, 300); };
+    } catch (e) { /* WAAPI unavailable — the hand still points at the tray */ }
+  }
+
+  function tutShow(mode) {
+    if (tutDone(mode)) return;
+    var eng = engine();
+    if (!eng || typeof eng.getState !== "function") return;
+    var st = eng.getState();
+    if (!st || st.over) return;
+    var pieceIndex = -1, row = -1, col = -1, piece = null;
+    if (mode === "adv") {
+      /* Tutorial level: the tray's 2x2 belongs in the cross hole. */
+      var hole = (advMod() && advMod().CROSS_HOLE) || { row: 3, col: 3 };
+      for (var i = 0; i < st.tray.length; i++) {
+        var p = st.tray[i];
+        if (p && p.key === "square2") { pieceIndex = i; piece = p; break; }
+      }
+      if (pieceIndex >= 0) { row = hole.row; col = hole.col; }
+      else { /* no 2x2 in the tray (should not happen — the tray is forced) */
+        var hf = eng.hint ? eng.hint() : null;
+        if (!hf) return;
+        pieceIndex = hf.pieceIndex; row = hf.row; col = hf.col; piece = hf.piece;
+      }
+    } else {
+      var h = eng.hint ? eng.hint() : null;
+      if (!h) return;
+      pieceIndex = h.pieceIndex; row = h.row; col = h.col; piece = h.piece;
+    }
+    if (pieceIndex < 0 || !piece) return;
+    tutHide(); /* clear any previous run */
+    tut = { mode: mode, pieceIndex: pieceIndex, row: row, col: col, piece: piece, anim: null, timer: null };
+    highlightTarget(row, col, piece);
+    var hand = $("#tut-hand");
+    if (!hand) { tut = null; return; }
+    hand.hidden = false;
+    /* First trip after a beat, so the board has laid out. */
+    tut.timer = setTimeout(tutTrip, 80);
+  }
+
+  function tutDismiss() {
+    /* First placement: the player has learned it — never show again here. */
+    if (!tut) return;
+    tutMarkDone(tut.mode);
+    tutHide();
+  }
+
   /* Tap a tray piece to select it (used by tap-to-place and Hold). */
   function wirePiece(el, idx) {
     el.addEventListener("click", function () {
@@ -976,6 +1120,7 @@
       $("#preview-ribbon").hidden = true;
       syncFromEngine(engine().newGame(state.difficulty));
       showScreen("board");
+      tutShow("classic"); /* first game only — the hand teaches the drag */
     } else {
       /* Preview state: the board renders a fixed demo pattern. NOT playable —
          the engine is not here yet, and this UI must not invent gameplay. */
@@ -1229,9 +1374,14 @@
     if (advM && typeof advM.seedBoard === "function") {
       try { seed = advM.seedBoard(def); } catch (e) { seed = null; }
     }
-    syncFromEngine(engine().newGame(def.difficulty, seed ? { board: seed } : undefined));
+    /* Easy W1 L1 is the tutorial level: its cross board has a 2x2 hole,
+       so the first tray is guaranteed a 2x2 to put in it. */
+    var opts = seed ? { board: seed } : {};
+    if (def.diff === "easy" && def.world === 1 && def.num === 1) opts.firstPieceKey = "square2";
+    syncFromEngine(engine().newGame(def.difficulty, opts));
     updateGoalBar();
     showScreen("board");
+    if (def.diff === "easy" && def.world === 1 && def.num === 1) tutShow("adv");
   }
 
   /* The win/fail DECISION is synchronous (so a same-move gameover event
@@ -1937,7 +2087,7 @@
             if (doneMissions.length) refreshHomeChips();
           }
           if (e.type === "newgame") { syncFromEngine(e.state); updateGoalBar(); }
-          else if (e.type === "place") { syncFromEngine(); updateGoalBar(); checkAdvGoal(); checkChalGoal(); }
+          else if (e.type === "place") { tutDismiss(); syncFromEngine(); updateGoalBar(); checkAdvGoal(); checkChalGoal(); }
           else if (e.type === "clear") {
             var cellsList = (e.cells || []).map(function (cc) { return [cc.row, cc.col]; });
             var gained = (typeof e.score === "number") ? e.score - state.score : 0;
@@ -1958,6 +2108,7 @@
             popCells(cellsList, function () { syncFromEngine(); });
             toast(t("relaxRefresh"), 2200);
           } else if (e.type === "gameover") {
+            tutHide(); /* leaving the board — the tutorial (if any) stays un-done */
             /* Mission rewards banked by onRunEvent() above must land now:
                a win can be followed by a late gameover (the player keeps
                placing for a moment after the win), and the win-time flush
