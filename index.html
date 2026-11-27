@@ -18,8 +18,42 @@
 <body>
 <div id="app">
 
+  <!-- ================= SPLASH =================
+       Opening flow (owner order, Block Blast style):
+       splash (animated logo, every launch) -> Terms (first launch only)
+       -> Home. The splash never traps the player: the video auto-advances,
+       a tap skips, and a missing/blocked video falls back to the static
+       logo for 2s. -->
+  <section id="screen-splash" class="screen splash-screen active" aria-label="Milo Pop Puzzle">
+    <video id="splash-video" src="assets/logo-animated.mp4" poster="assets/logo.png"
+      autoplay muted playsinline preload="auto"></video>
+    <img id="splash-logo" src="assets/logo.png" alt="Milo Pop Puzzle" hidden>
+    <div class="splash-tap" data-i18n="tapToContinue">Tap to continue</div>
+  </section>
+
+  <!-- ================= TERMS =================
+       Terms body stays in English on every language (plain, short, and
+       the same promise everywhere) — only the title and buttons are
+       translated. -->
+  <section id="screen-terms" class="screen" aria-label="Terms and Conditions">
+    <h1 class="terms-title" data-i18n="termsTitle">Terms &amp; Conditions</h1>
+    <div class="terms-body glass" dir="ltr">
+      <p>No account or sign-in is needed to play.</p>
+      <p>Your progress is saved only on this device. Use Backup in Settings to keep it safe.</p>
+      <p>We collect no personal information.</p>
+      <p>Sound and music can be muted anytime in Settings.</p>
+      <p>The web version has no ads. The future Play Store app may show ads and offer Remove Ads / Pro as one-time purchases.</p>
+      <p>This game is for all ages — children should play together with family.</p>
+    </div>
+    <div class="terms-note" id="terms-decline-note" hidden><span data-i18n="termsNeedAccept">Please accept the Terms to play.</span></div>
+    <div class="go-btns terms-btns">
+      <button class="big-btn green" id="btn-terms-accept"><span data-i18n="termsAccept">Accept</span></button>
+      <button class="big-btn blue" id="btn-terms-decline"><span data-i18n="termsDecline">Decline</span></button>
+    </div>
+  </section>
+
   <!-- ================= HOME ================= -->
-  <section id="screen-home" class="screen active" aria-label="Home">
+  <section id="screen-home" class="screen" aria-label="Home">
     <div class="top-bar">
       <span class="coin-pill"><span class="coin">🪙</span><span id="home-coins">0</span></span>
       <button class="icon-btn" id="btn-settings" data-i18n-aria="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -400,6 +434,13 @@
         <button class="backup-btn green wide" id="btn-backup-apply" hidden>✓ <span data-i18n="restore">Restore</span></button>
       </div>
 
+      <div class="sec-label" data-i18n="termsLink">Terms &amp; Conditions</div>
+      <div class="backup-box glass">
+        <div class="backup-btns">
+          <button class="backup-btn wide" id="btn-open-terms">📄 <span data-i18n="termsLink">Terms &amp; Conditions</span></button>
+        </div>
+      </div>
+
       <button class="modal-close" id="btn-settings-close" data-i18n="close">Close</button>
     </div>
   </div>
@@ -528,6 +569,71 @@
     var el = $("#screen-" + name);
     if (el) el.classList.add("active");
     if (name === "board") fitTrayPieces();
+  }
+
+  /* ---------- opening flow: splash -> Terms -> Home ----------
+     Splash shows every launch (~4s, the animated logo). Terms is asked
+     ONCE and remembered in localStorage (mpp_terms_v1 = "accepted").
+     The splash can never trap the player: auto-advance, tap-to-skip, and
+     a video error/slow load falls back to the static logo for 2s. */
+  var TERMS_KEY = "terms_v1";
+  var splashDone = false;
+  var splashTimer = null;
+  var termsFromSettings = false;
+
+  function termsAccepted() { return store.get(TERMS_KEY, "") === "accepted"; }
+
+  function showTerms(fromSettings) {
+    termsFromSettings = !!fromSettings;
+    var note = $("#terms-decline-note");
+    if (note) note.hidden = true;
+    showScreen("terms");
+  }
+
+  function endSplash() {
+    if (splashDone) return;
+    splashDone = true;
+    clearTimeout(splashTimer);
+    var v = $("#splash-video");
+    if (v) { try { v.pause(); } catch (e) { /* already stopped */ } }
+    if (termsAccepted()) showScreen("home");
+    else showTerms(false);
+  }
+
+  function startSplash() {
+    splashDone = false;
+    showScreen("splash");
+    var v = $("#splash-video"), img = $("#splash-logo");
+    var fallback = function () {
+      if (v) v.style.display = "none";
+      if (img) img.hidden = false;
+      clearTimeout(splashTimer);
+      splashTimer = setTimeout(endSplash, 2000); /* static logo, then move on */
+    };
+    if (v) {
+      v.addEventListener("error", fallback);
+      v.addEventListener("ended", function () { setTimeout(endSplash, 300); });
+      var p = null;
+      try { p = v.play(); } catch (e) { fallback(); }
+      if (p && typeof p.catch === "function") p.catch(fallback);
+    }
+    clearTimeout(splashTimer);
+    splashTimer = setTimeout(endSplash, 4200); /* ~video length + buffer; also the slow-load escape */
+    var scr = $("#screen-splash");
+    if (scr) scr.addEventListener("click", endSplash);
+  }
+
+  function acceptTerms() {
+    sfx("click");
+    store.set(TERMS_KEY, "accepted");
+    termsFromSettings = false;
+    showScreen("home");
+  }
+
+  function declineTerms() {
+    sfx("click");
+    var note = $("#terms-decline-note");
+    if (note) note.hidden = false; /* stay on Terms — the game needs acceptance to play */
   }
 
   var toastTimer = null;
@@ -1867,7 +1973,17 @@
         });
       } catch (err) { /* engine event API differs — MiloPopUI calls still work */ }
     }
+    /* opening flow: Terms buttons + Settings Terms link (re-read anytime) */
+    $("#btn-terms-accept").addEventListener("click", acceptTerms);
+    $("#btn-terms-decline").addEventListener("click", declineTerms);
+    $("#btn-open-terms").addEventListener("click", function () {
+      sfx("click");
+      $("#settings-modal").classList.remove("open");
+      showTerms(true);
+    });
+
     setupEngineDrag();
+    startSplash(); /* splash (every launch) -> Terms (first launch only) -> Home */
   }
 
   /* ---------- public UI API for the engine (Agent 1) ---------- */

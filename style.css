@@ -990,3 +990,54 @@ body.theme-golden {
 .backup-status { font-size: 14px; font-weight: 700; min-height: 20px; text-align: center; }
 .backup-status.ok { color: #bbf7d0; }
 .backup-status.error { color: #fca5a5; }
+
+/* ---------- Splash + Terms (opening flow) ---------- */
+.splash-screen {
+  padding: 0;
+  justify-content: center;
+  background: linear-gradient(180deg, #6d28d9 0%, #7c3aed 45%, #0d9488 100%);
+}
+#splash-video,
+#splash-logo {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+/* The static logo is hidden until the video-fallback needs it — the
+   display:block above would otherwise defeat the hidden attribute. */
+#splash-logo[hidden] { display: none; }
+.splash-tap {
+  margin-top: 20px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  animation: splash-pulse 1.6s ease-in-out infinite;
+}
+@keyframes splash-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+
+.terms-title {
+  margin: 18px 0 12px;
+  font-size: 26px;
+  font-weight: 900;
+  text-align: center;
+}
+.terms-body {
+  width: 100%;
+  padding: 16px 18px;
+  font-size: 15px;
+  line-height: 1.55;
+  text-align: left;
+}
+.terms-body p { margin: 0 0 10px; }
+.terms-body p:last-child { margin-bottom: 0; }
+.terms-note {
+  margin: 14px 0 0;
+  color: #ffd23e;
+  font-size: 15px;
+  font-weight: 800;
+  text-align: center;
+}
+.terms-btns { width: 100%; margin-top: 18px; }

@@ -116,7 +116,13 @@ window.MILO_I18N = {
     weeklyBadges: "Weekly badges",
     noBadgesYet: "No badges yet — win a Weekly Challenge!",
     yourProgress: "Your progress",
-    backupHint: "Save your progress to a file or code, and restore it on any device."
+    backupHint: "Save your progress to a file or code, and restore it on any device.",
+    termsTitle: "Terms & Conditions",
+    termsAccept: "Accept",
+    termsDecline: "Decline",
+    termsNeedAccept: "Please accept the Terms to play.",
+    tapToContinue: "Tap to continue",
+    termsLink: "Terms & Conditions"
   },
   ur: {
     play: "کھیلو",
@@ -232,7 +238,13 @@ window.MILO_I18N = {
     weeklyBadges: "ہفتہ وار بیجز",
     noBadgesYet: "ابھی کوئی بیج نہیں — ہفتہ وار چیلنج جیتیں!",
     yourProgress: "آپ کی پیش رفت",
-    backupHint: "اپنی پیش رفت فائل یا کوڈ میں محفوظ کریں، اور کسی بھی ڈیوائس پر بحال کریں۔"
+    backupHint: "اپنی پیش رفت فائل یا کوڈ میں محفوظ کریں، اور کسی بھی ڈیوائس پر بحال کریں۔",
+    termsTitle: "شرائط و ضوابط",
+    termsAccept: "قبول کریں",
+    termsDecline: "انکار کریں",
+    termsNeedAccept: "کھیلنے کے لیے شرائط قبول کریں۔",
+    tapToContinue: "جاری رکھنے کے لیے تھپتھپائیں",
+    termsLink: "شرائط و ضوابط"
   },
   es: {
     play: "JUGAR",
@@ -348,7 +360,13 @@ window.MILO_I18N = {
     weeklyBadges: "Insignias semanales",
     noBadgesYet: "Aún no hay insignias — ¡gana un desafío semanal!",
     yourProgress: "Tu progreso",
-    backupHint: "Guarda tu progreso en un archivo o código y restáuralo en cualquier dispositivo."
+    backupHint: "Guarda tu progreso en un archivo o código y restáuralo en cualquier dispositivo.",
+    termsTitle: "Términos y condiciones",
+    termsAccept: "Aceptar",
+    termsDecline: "Rechazar",
+    termsNeedAccept: "Acepta los Términos para jugar.",
+    tapToContinue: "Toca para continuar",
+    termsLink: "Términos y condiciones"
   },
   fr: {
     play: "JOUER",
@@ -464,7 +482,13 @@ window.MILO_I18N = {
     weeklyBadges: "Badges hebdomadaires",
     noBadgesYet: "Pas encore de badge — gagne un défi hebdomadaire !",
     yourProgress: "Ta progression",
-    backupHint: "Enregistre ta progression dans un fichier ou un code, et restaure-la sur n'importe quel appareil."
+    backupHint: "Enregistre ta progression dans un fichier ou un code, et restaure-la sur n'importe quel appareil.",
+    termsTitle: "Conditions générales",
+    termsAccept: "Accepter",
+    termsDecline: "Refuser",
+    termsNeedAccept: "Accepte les conditions pour jouer.",
+    tapToContinue: "Touchez pour continuer",
+    termsLink: "Conditions générales"
   },
   pt: {
     play: "JOGAR",
@@ -580,7 +604,13 @@ window.MILO_I18N = {
     weeklyBadges: "Emblemas semanais",
     noBadgesYet: "Ainda sem emblemas — ganhe um desafio semanal!",
     yourProgress: "Seu progresso",
-    backupHint: "Salve seu progresso em um arquivo ou código e restaure-o em qualquer dispositivo."
+    backupHint: "Salve seu progresso em um arquivo ou código e restaure-o em qualquer dispositivo.",
+    termsTitle: "Termos e Condições",
+    termsAccept: "Aceitar",
+    termsDecline: "Recusar",
+    termsNeedAccept: "Aceite os Termos para jogar.",
+    tapToContinue: "Toque para continuar",
+    termsLink: "Termos e Condições"
   },
   de: {
     play: "SPIELEN",
@@ -696,7 +726,13 @@ window.MILO_I18N = {
     weeklyBadges: "Wochenabzeichen",
     noBadgesYet: "Noch keine Abzeichen — gewinne eine Wochen-Challenge!",
     yourProgress: "Dein Fortschritt",
-    backupHint: "Speichere deinen Fortschritt in einer Datei oder einem Code und stelle ihn auf jedem Gerät wieder her."
+    backupHint: "Speichere deinen Fortschritt in einer Datei oder einem Code und stelle ihn auf jedem Gerät wieder her.",
+    termsTitle: "Nutzungsbedingungen",
+    termsAccept: "Akzeptieren",
+    termsDecline: "Ablehnen",
+    termsNeedAccept: "Bitte akzeptiere die Bedingungen, um zu spielen.",
+    tapToContinue: "Tippen zum Fortfahren",
+    termsLink: "Nutzungsbedingungen"
   },
   ar: {
     play: "العب",
@@ -812,7 +848,13 @@ window.MILO_I18N = {
     weeklyBadges: "شارات أسبوعية",
     noBadgesYet: "لا شارات بعد — اربح تحديًا أسبوعيًا!",
     yourProgress: "تقدمك",
-    backupHint: "احفظ تقدمك في ملف أو رمز، واستعده على أي جهاز."
+    backupHint: "احفظ تقدمك في ملف أو رمز، واستعده على أي جهاز.",
+    termsTitle: "الشروط والأحكام",
+    termsAccept: "قبول",
+    termsDecline: "رفض",
+    termsNeedAccept: "يرجى قبول الشروط للعب.",
+    tapToContinue: "انقر للمتابعة",
+    termsLink: "الشروط والأحكام"
   },
   zh: {
     play: "开始",
@@ -928,7 +970,13 @@ window.MILO_I18N = {
     weeklyBadges: "每周徽章",
     noBadgesYet: "还没有徽章——赢得每周挑战吧！",
     yourProgress: "你的进度",
-    backupHint: "将进度保存到文件或代码中，并在任何设备上恢复。"
+    backupHint: "将进度保存到文件或代码中，并在任何设备上恢复。",
+    termsTitle: "条款与条件",
+    termsAccept: "接受",
+    termsDecline: "拒绝",
+    termsNeedAccept: "请接受条款后开始游戏。",
+    tapToContinue: "点击继续",
+    termsLink: "条款与条件"
   },
   hi: {
     play: "खेलें",
@@ -1044,7 +1092,13 @@ window.MILO_I18N = {
     weeklyBadges: "साप्ताहिक बैज",
     noBadgesYet: "अभी कोई बैज नहीं — साप्ताहिक चैलेंज जीतें!",
     yourProgress: "आपकी प्रगति",
-    backupHint: "अपनी प्रगति फ़ाइल या कोड में सहेजें, और किसी भी डिवाइस पर रीस्टोर करें।"
+    backupHint: "अपनी प्रगति फ़ाइल या कोड में सहेजें, और किसी भी डिवाइस पर रीस्टोर करें।",
+    termsTitle: "नियम और शर्तें",
+    termsAccept: "स्वीकार करें",
+    termsDecline: "अस्वीकार करें",
+    termsNeedAccept: "खेलने के लिए नियम स्वीकार करें।",
+    tapToContinue: "जारी रखने के लिए टैप करें",
+    termsLink: "नियम और शर्तें"
   },
   tr: {
     play: "OYNA",
@@ -1160,7 +1214,13 @@ window.MILO_I18N = {
     weeklyBadges: "Haftalık rozetler",
     noBadgesYet: "Henüz rozet yok — haftalık mücadele kazan!",
     yourProgress: "İlerlemen",
-    backupHint: "İlerlemeni bir dosyaya veya koda kaydet ve herhangi bir cihazda geri yükle."
+    backupHint: "İlerlemeni bir dosyaya veya koda kaydet ve herhangi bir cihazda geri yükle.",
+    termsTitle: "Şartlar ve Koşullar",
+    termsAccept: "Kabul Et",
+    termsDecline: "Reddet",
+    termsNeedAccept: "Oynamak için Şartları kabul edin.",
+    tapToContinue: "Devam etmek için dokunun",
+    termsLink: "Şartlar ve Koşullar"
   }
 };
 
