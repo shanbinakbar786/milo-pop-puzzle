@@ -678,8 +678,45 @@
 
   /* ---------- drag + tap-to-place (input only — the engine validates) ----------
      Dragging is the engine's tested drag controller (MiloPop.createDragController).
-     This UI only draws the ghost highlight and reports drops to the engine. */
+     The engine owns the drag; this UI draws the ghost highlight on the board AND
+     renders a floating clone of the dragged tray piece under the pointer
+     (Block Blast style) — render-only, it never touches the engine. */
   var dragController = null;
+
+  /* Floating dragged piece (visual only). The clone is appended to <body>
+     with pointer-events:none, so it can never intercept the engine drag
+     controller's pointer events. While a drag is active the original tray
+     piece gets the .dragging class (dimmed + shrunk = "lifted"). */
+  var floatClone = null;
+  var floatSrc = null;
+  var floatWired = false;
+
+  function endFloat() {
+    if (floatClone && floatClone.parentNode) floatClone.parentNode.removeChild(floatClone);
+    floatClone = null;
+    if (floatSrc) { floatSrc.classList.remove("dragging"); floatSrc = null; }
+  }
+
+  function moveFloat(x, y) {
+    if (!floatClone) return;
+    floatClone.style.left = x + "px";
+    floatClone.style.top = y + "px";
+  }
+
+  function startFloat(srcEl, x, y) {
+    endFloat();
+    if (!srcEl) return;
+    var clone = srcEl.cloneNode(true);
+    clone.removeAttribute("data-piece-index");
+    clone.classList.add("drag-float");
+    clone.style.transform = ""; /* drop the tray fit-scale; the class scales it */
+    clone.style.left = x + "px";
+    clone.style.top = y + "px";
+    document.body.appendChild(clone);
+    floatClone = clone;
+    floatSrc = srcEl;
+    srcEl.classList.add("dragging");
+  }
 
   function highlightTarget(anchorRow, anchorCol, piece) {
     $$(".cell.preview-target").forEach(function (c) { c.classList.remove("preview-target"); });
@@ -746,10 +783,27 @@
         highlightTarget(row, col, piece);
       },
       onDrop: function (result) {
+        endFloat();
         highlightTarget(null, null, null);
         if (result && result.ok) setTimeout(syncFromEngine, 400);
       }
     });
+    /* The floating clone follows the very same pointer events the engine
+       drag uses — no second drag system, render-only. Listeners are wired
+       once (setupEngineDrag runs once, but guard anyway). */
+    if (!floatWired) {
+      floatWired = true;
+      trayEl.addEventListener("pointerdown", function (ev) {
+        var src = ev.target && ev.target.closest ? ev.target.closest("[data-piece-index]") : null;
+        if (!src || !trayEl.contains(src)) return;
+        var st = eng.getState ? eng.getState() : null;
+        if (!st || st.over) return; /* engine would ignore this drag too */
+        startFloat(src, ev.clientX, ev.clientY);
+      });
+      document.addEventListener("pointermove", function (ev) { moveFloat(ev.clientX, ev.clientY); });
+      document.addEventListener("pointerup", endFloat);
+      document.addEventListener("pointercancel", endFloat);
+    }
   }
 
   /* Tap a tray piece to select it (used by tap-to-place and Hold). */

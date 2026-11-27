@@ -508,7 +508,23 @@ body::after {
   border-radius: 12px;
 }
 .piece:active { cursor: grabbing; }
-.piece.dragging { opacity: 0.35; }
+.piece.dragging { opacity: 0.35; transform: scale(0.92); }
+
+/* Floating clone of the dragged tray piece — follows the pointer.
+   Appended to <body>, never intercepts pointer events (the engine drag
+   controller keeps receiving them). Slightly enlarged, with a drop shadow,
+   so the piece reads as lifted off the tray. */
+.drag-float {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+  margin: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(1.1);
+  filter: drop-shadow(0 14px 18px rgba(10, 2, 35, 0.55));
+  cursor: grabbing;
+}
 .piece .mini {
   position: relative;
   overflow: hidden;
