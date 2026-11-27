@@ -525,6 +525,11 @@ body::after {
   filter: drop-shadow(0 14px 18px rgba(10, 2, 35, 0.55));
   cursor: grabbing;
 }
+/* While a piece is being dragged, pause infinite CSS animations
+   (tutorial hand bob, map pulse, trophy glow, badge shine) so nothing
+   repaints under the finger on a cheap phone. Static look unchanged;
+   animations resume the moment the drag ends. */
+body.dragging * { animation-play-state: paused !important; }
 .piece .mini {
   position: relative;
   overflow: hidden;

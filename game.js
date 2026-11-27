@@ -633,16 +633,54 @@
 
     var drag = null; // { pieceIndex, pointerId }
 
-    function cellFromPoint(x, y) {
+    // Anchor from a pointer position — CENTRE-based, not top-left.
+    // The floating clone is drawn centred on the finger (translate(-50%,-50%)),
+    // so the player aims the piece's VISUAL CENTRE at the target. The anchor
+    // (top-left cell of the piece) is therefore the centre minus half the
+    // piece's bounding box, rounded to the nearest cell — that rounding IS
+    // the half-cell tolerance: releasing up to half a cell off-centre still
+    // lands on the intended anchor. The old code used floor() on the pointer
+    // cell, i.e. it treated the finger as the piece's TOP-LEFT corner, so
+    // every multi-cell piece landed one cell down/right of where the player
+    // aimed (measured live 27 Nov 2026: 5/6 centre-aimed drags shifted,
+    // 1/6 bounced outright).
+    function anchorFromPoint(x, y, pieceIndex) {
       if (!boardEl || !boardEl.getBoundingClientRect) return null;
+      var piece = state && state.tray ? state.tray[pieceIndex] : null;
+      if (!piece) return null;
       var rect = boardEl.getBoundingClientRect();
       if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) return null;
       var cellW = rect.width / BOARD_SIZE;
       var cellH = rect.height / BOARD_SIZE;
-      var col = Math.floor((x - rect.left) / cellW);
-      var row = Math.floor((y - rect.top) / cellH);
-      if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return null;
-      return { row: row, col: col };
+      var maxR = 0, maxC = 0;
+      for (var i = 0; i < piece.cells.length; i++) {
+        if (piece.cells[i][0] > maxR) maxR = piece.cells[i][0];
+        if (piece.cells[i][1] > maxC) maxC = piece.cells[i][1];
+      }
+      var w = maxC + 1, h = maxR + 1;
+      var px = (x - rect.left) / cellW;
+      var py = (y - rect.top) / cellH;
+      return { row: Math.round(py - h / 2), col: Math.round(px - w / 2) };
+    }
+
+    // Nearest valid anchor to (row, col), searching the 3x3 neighbourhood.
+    // Returns the ideal anchor when it fits, else the closest fitting
+    // neighbour (ties: smallest offset first), else null. A drop is only
+    // a bounce-back when NO valid spot is within one cell.
+    function nearestFit(pieceIndex, row, col) {
+      if (canPlace(pieceIndex, row, col)) return { row: row, col: col };
+      var best = null, bestD = Infinity;
+      for (var dr = -1; dr <= 1; dr++) {
+        for (var dc = -1; dc <= 1; dc++) {
+          if (!dr && !dc) continue;
+          var r = row + dr, c = col + dc;
+          if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) continue;
+          if (!canPlace(pieceIndex, r, c)) continue;
+          var d = dr * dr + dc * dc;
+          if (d < bestD) { bestD = d; best = { row: r, col: c }; }
+        }
+      }
+      return best;
     }
 
     function onPointerDown(e) {
@@ -660,22 +698,29 @@
 
     function onPointerMove(e) {
       if (!drag || e.pointerId !== drag.pointerId) return;
-      var cell = cellFromPoint(e.clientX, e.clientY);
-      if (!cell) { onGhost(drag.pieceIndex, null, null, false); return; }
-      onGhost(drag.pieceIndex, cell.row, cell.col, canPlace(drag.pieceIndex, cell.row, cell.col));
+      var anchor = anchorFromPoint(e.clientX, e.clientY, drag.pieceIndex);
+      if (!anchor) { onGhost(drag.pieceIndex, null, null, false); return; }
+      var fit = nearestFit(drag.pieceIndex, anchor.row, anchor.col);
+      if (!fit) { onGhost(drag.pieceIndex, null, null, false); return; }
+      onGhost(drag.pieceIndex, fit.row, fit.col, true);
     }
 
     function onPointerUp(e) {
       if (!drag || e.pointerId !== drag.pointerId) return;
       var idx = drag.pieceIndex;
       drag = null;
-      var cell = cellFromPoint(e.clientX, e.clientY);
+      var anchor = anchorFromPoint(e.clientX, e.clientY, idx);
       var result;
-      if (cell && canPlace(idx, cell.row, cell.col)) {
-        result = placePiece(idx, cell.row, cell.col);
+      if (!anchor) {
+        result = { ok: false, reason: 'outside-board' };
       } else {
-        // Bounce back — invalid spot or dropped outside the board.
-        result = { ok: false, reason: cell ? 'no-fit' : 'outside-board' };
+        var fit = nearestFit(idx, anchor.row, anchor.col);
+        if (fit) {
+          result = placePiece(idx, fit.row, fit.col);
+        } else {
+          // Bounce back — no valid spot within one cell of where released.
+          result = { ok: false, reason: 'no-fit' };
+        }
       }
       onGhost(idx, null, null, false);
       onDrop(result);
@@ -702,6 +747,7 @@
     }
 
     return {
+      isDragging: function () { return !!drag; },
       destroy: function () {
         pieces.forEach(function (el) {
           el.removeEventListener('pointerdown', onPointerDown);

@@ -763,7 +763,15 @@
       trayEl.appendChild(s);
     }
     fitTrayPieces();
-    if (dragController && typeof dragController.refresh === "function") dragController.refresh();
+    /* refresh() destroys the old controller and returns a NEW one — the
+       return value MUST be kept. Dropping it (the old code) orphaned the
+       new controller while dragController kept pointing at the destroyed
+       one, so every sync leaked a live duplicate controller and every
+       drag was then handled TWICE: the second controller's pointerup
+       placed a second, unchosen piece (from a refilled tray) at a wrong
+       cell. Measured live 27 Nov 2026: two 'place' events ~5ms apart per
+       drag whenever the drop emptied the tray. */
+    if (dragController && typeof dragController.refresh === "function") dragController = dragController.refresh();
   }
 
   /* Scale wide tray pieces down so they fit their slot (tray minis are big now). */
@@ -806,17 +814,34 @@
   var floatClone = null;
   var floatSrc = null;
   var floatWired = false;
+  /* True while a drag is in progress (set in startFloat, cleared in
+     endFloat). syncFromEngine() defers while this is true — see its
+     comment. pendingSync remembers a deferred sync to flush at drag end. */
+  var dragActive = false;
+  var pendingSync = false;
+  /* The piece being dragged, cached once at drag start so onGhost never
+     calls eng.getState() (a deep clone) on every pointermove. */
+  var dragPiece = null;
 
   function endFloat() {
     if (floatClone && floatClone.parentNode) floatClone.parentNode.removeChild(floatClone);
     floatClone = null;
     if (floatSrc) { floatSrc.classList.remove("dragging"); floatSrc = null; }
+    dragPiece = null;
+    document.body.classList.remove("dragging");
+    if (dragActive) {
+      dragActive = false;
+      if (pendingSync) { pendingSync = false; syncFromEngine(); }
+    }
   }
 
+  /* Move the clone with transform (compositor-only) instead of left/top,
+     which forced a layout on every pointermove — the clone lagged the
+     finger on cheap phones. left/top stay 0; the transform carries the
+     pointer position plus the -50% centring and 1.1x lift scale. */
   function moveFloat(x, y) {
     if (!floatClone) return;
-    floatClone.style.left = x + "px";
-    floatClone.style.top = y + "px";
+    floatClone.style.transform = "translate3d(" + x + "px," + y + "px,0) translate(-50%,-50%) scale(1.1)";
   }
 
   function startFloat(srcEl, x, y) {
@@ -825,21 +850,40 @@
     var clone = srcEl.cloneNode(true);
     clone.removeAttribute("data-piece-index");
     clone.classList.add("drag-float");
-    clone.style.transform = ""; /* drop the tray fit-scale; the class scales it */
-    clone.style.left = x + "px";
-    clone.style.top = y + "px";
+    clone.style.left = "0px";
+    clone.style.top = "0px";
     document.body.appendChild(clone);
     floatClone = clone;
     floatSrc = srcEl;
     srcEl.classList.add("dragging");
+    dragActive = true;
+    /* Pause infinite CSS animations while dragging (tutorial bob, map
+       pulse, trophy glow) — one less thing repainting under the finger.
+       Static look is unchanged; animations resume on drop. */
+    document.body.classList.add("dragging");
+    var idx = srcEl.getAttribute ? parseInt(srcEl.getAttribute("data-piece-index"), 10) : -1;
+    var eng = engine();
+    if (eng && typeof eng.getState === "function" && idx >= 0) {
+      var st = eng.getState();
+      dragPiece = st && st.tray ? st.tray[idx] : null;
+    }
+    moveFloat(x, y);
   }
 
+  /* Cells currently highlighted — tracked here so highlightTarget never
+     re-queries the whole document on every pointermove. */
+  var highlightedCells = [];
   function highlightTarget(anchorRow, anchorCol, piece) {
-    $$(".cell.preview-target").forEach(function (c) { c.classList.remove("preview-target"); });
+    highlightedCells.forEach(function (c) { c.classList.remove("preview-target"); });
+    highlightedCells = [];
     if (anchorRow === null || anchorRow === undefined || !piece) return;
     piece.cells.forEach(function (cc) {
       var r = anchorRow + cc[0], c = anchorCol + cc[1];
-      if (r >= 0 && r < 8 && c >= 0 && c < 8) cells[r * 8 + c].classList.add("preview-target");
+      if (r >= 0 && r < 8 && c >= 0 && c < 8) {
+        var cell = cells[r * 8 + c];
+        cell.classList.add("preview-target");
+        highlightedCells.push(cell);
+      }
     });
   }
 
@@ -870,6 +914,14 @@
   }
 
   function syncFromEngine(s) {
+    /* NEVER rebuild the UI mid-drag: renderTray() wipes trayEl.innerHTML
+       and dragController.refresh() destroys the drag controller, so a sync
+       landing while the player is dragging destroys the very element under
+       their finger (pointer capture lost, drop never happens). Measured
+       live 27 Nov 2026: 0/8 fast follow-up drags landed — the 400ms
+       safety-net sync from the previous drop fired mid-drag every time.
+       Defer the sync until the drag ends; endFloat() flushes it. */
+    if (dragActive) { pendingSync = true; return; }
     var eng = engine();
     if (!eng || typeof eng.getState !== "function") return;
     s = s || eng.getState();
@@ -881,7 +933,9 @@
     setUndoCount((s.undosLeft === undefined || s.undosLeft === null) ? null : s.undosLeft);
     setCombo(1);
     updateRelaxBar(s);
-    if (dragController && typeof dragController.refresh === "function") dragController.refresh();
+    /* No refresh() here: renderTray() above already refreshed (and now
+       keeps the new controller). Calling it again created a second live
+       duplicate controller on the same tray pieces — see renderTray. */
   }
 
   function setupEngineDrag() {
@@ -894,8 +948,14 @@
       traySelector: "[data-piece-index]",
       onGhost: function (pieceIndex, row, col, canPlace) {
         if (row === null || row === undefined || !canPlace) { highlightTarget(null, null, null); return; }
-        var st = eng.getState();
-        var piece = st && st.tray ? st.tray[pieceIndex] : null;
+        /* Piece cached once at drag start (dragPiece) — no getState() clone
+           on every pointermove. Falls back to a live read if the cache is
+           empty (should not happen mid-drag). */
+        var piece = dragPiece;
+        if (!piece) {
+          var st = eng.getState();
+          piece = st && st.tray ? st.tray[pieceIndex] : null;
+        }
         highlightTarget(row, col, piece);
       },
       onDrop: function (result) {
@@ -960,18 +1020,23 @@
 
   function tutTargetCenter(row, col, piece) {
     if (!piece || !cells.length) return null;
-    /* The engine's drag anchors a piece by the board cell under the
-       pointer — its TOP-LEFT cell — so the hand must point at the ANCHOR
-       cell's center, not the middle of the whole footprint. Pointing at
-       the footprint center lands exactly on a cell boundary for even-sized
-       pieces (the 2x2 cross hole): floor() then picks the bottom-right
-       cell as the anchor, which does not fit, and the drop bounces back.
-       Found live 27 Nov 2026: dragging the 2x2 to the hole's center
-       computed anchor (4,4), canPlace false, score stayed 0. */
-    var a = cells[row * 8 + col];
-    if (!a) return null;
-    var ra = a.getBoundingClientRect();
-    return { x: ra.left + ra.width / 2, y: ra.top + ra.height / 2 };
+    /* Drops are CENTRE-anchored (the finger aims the piece's visual centre
+       at the target), so the hand must point at the FOOTPRINT'S CENTRE —
+       the centre of the piece's bounding box at the anchor — not at the
+       anchor cell. (Before the centre-anchor fix the hand pointed at the
+       anchor cell; that was the exact 2x2-hole bug found live 27 Nov 2026.)
+       bbox centre in cell units: anchor + (size+1)/2. */
+    var maxR = 0, maxC = 0;
+    piece.cells.forEach(function (cc) {
+      if (cc[0] > maxR) maxR = cc[0];
+      if (cc[1] > maxC) maxC = cc[1];
+    });
+    var rect = boardEl.getBoundingClientRect();
+    var cw = rect.width / 8, ch = rect.height / 8;
+    return {
+      x: rect.left + (col + (maxC + 1) / 2) * cw,
+      y: rect.top + (row + (maxR + 1) / 2) * ch
+    };
   }
 
   /* One trip: hand starts on the tray piece, glides to the target cells,
