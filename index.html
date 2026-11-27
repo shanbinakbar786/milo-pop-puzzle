@@ -1116,7 +1116,14 @@
     setUndoCount(def.difficulty === "easy" ? 3 : 1);
     $("#preview-ribbon").hidden = true;
     state.preview = false;
-    syncFromEngine(engine().newGame(def.difficulty));
+    /* Adventure starts with pre-placed blocks (Block Blast style); Classic
+       and challenges always start from an empty board. */
+    var seed = null;
+    var advM = advMod();
+    if (advM && typeof advM.seedBoard === "function") {
+      try { seed = advM.seedBoard(def); } catch (e) { seed = null; }
+    }
+    syncFromEngine(engine().newGame(def.difficulty, seed ? { board: seed } : undefined));
     updateGoalBar();
     showScreen("board");
   }

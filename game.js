@@ -13,7 +13,11 @@
  *
  * Exposed API (for Agent 2's UI):
  *   window.MiloPop = {
- *     newGame(difficulty)          // 'easy' | 'medium'
+ *     newGame(difficulty, opts?)   // 'easy' | 'medium'; opts.board = an 8x8
+ *                                   // array of colour indices (0=empty,
+ *                                   // 1..6) to start pre-filled (Adventure
+ *                                   // seeded boards). No opts = empty board
+ *                                   // (Classic / Daily / Weekly / Relax).
  *     canPlace(pieceIndex, row, col) -> bool
  *     placePiece(pieceIndex, row, col) -> result object or { ok:false, reason }
  *     findFits(pieceIndex)         -> [{row,col}, ...] all valid spots
@@ -357,10 +361,30 @@
   }
 
   // ---------------------------------------------------------------------- API
-  function newGame(difficulty) {
+  // opts.board (optional, additive): an 8x8 array of colour indices
+  // (0=empty, 1..6) to start the board pre-filled — Adventure seeded boards
+  // only. Invalid boards (wrong shape, bad values, or a board that already
+  // has a completed line) fall back to an empty board. No game rule changes:
+  // the tray is dealt against the (possibly seeded) board, so the existing
+  // fair-draw re-roll still guarantees a fitting tray.
+  function newGame(difficulty, opts) {
     if (!DIFFICULTIES[difficulty]) difficulty = 'easy';
     var cfg = DIFFICULTIES[difficulty];
     var board = emptyBoard();
+    if (opts && opts.board) {
+      var b = opts.board;
+      var valid = Array.isArray(b) && b.length === BOARD_SIZE &&
+        b.every(function (row) {
+          return Array.isArray(row) && row.length === BOARD_SIZE &&
+            row.every(function (v) { return v >= 0 && v <= COLORS.length; });
+        });
+      if (valid) {
+        var seededLines = findFullLines(b);
+        if (seededLines.rows.length === 0 && seededLines.cols.length === 0) {
+          board = cloneBoard(b);
+        }
+      }
+    }
     state = {
       mode: 'classic',
       difficulty: difficulty,
