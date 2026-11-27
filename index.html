@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#6d28d9">
+<link rel="manifest" href="manifest.json">
 <title>Milo Pop Puzzle</title>
 <link rel="stylesheet" href="style.css">
 <script src="i18n.js"></script>
@@ -2239,6 +2240,17 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
+</script>
+<script>
+/* PWA: register the service worker so the game works offline after the first
+   visit. Guarded so a failed registration can never break the game. */
+try {
+  if ('serviceWorker' in navigator && window.location.protocol.indexOf('http') === 0) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+  }
+} catch (err) {}
 </script>
 </body>
 </html>
