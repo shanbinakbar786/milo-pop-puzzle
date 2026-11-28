@@ -1,7 +1,7 @@
 /* Milo Pop Puzzle — service worker (PWA offline support).
    Cache-first for the game's OWN same-origin files only. Bump CACHE on
    every game update so players always get the newest version. */
-var CACHE = 'milo-pop-puzzle-v1';
+var CACHE = 'milo-pop-puzzle-v2';
 var ASSETS = [
   './',
   './index.html',
