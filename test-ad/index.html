@@ -1,0 +1,2259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#6d28d9">
+<link rel="manifest" href="manifest.json">
+<title>Milo Pop Puzzle</title>
+<!-- Google tag (gtag.js) - Google Analytics 4, property "Milo Pop Puzzle" -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FPRP24T15K"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FPRP24T15K');
+</script>
+<link rel="stylesheet" href="style.css">
+<script src="i18n.js"></script>
+<script src="levels.js" onerror="window.__miloLevelsMissing=true"></script>
+<script src="challenges.js" onerror="window.__miloChallengesMissing=true"></script>
+<script src="backup.js" onerror="window.__miloBackupMissing=true"></script>
+<!-- Agent 1 owns game.js (the engine). Agent 3 owns audio.js (music + sounds).
+     Either file may not exist yet — missing files are handled gracefully. -->
+<script src="game.js" onerror="window.__miloEngineMissing=true"></script>
+<script src="promo-ad.js" onerror="window.__miloPromoAdMissing=true"></script>
+<script src="audio/audio.js" onerror="window.__miloAudioMissing=true"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- ================= SPLASH =================
+       Opening flow (owner order, Block Blast style):
+       splash (animated logo, every launch) -> Terms (first launch only)
+       -> Home. The splash never traps the player: the video auto-advances,
+       a tap skips, and a missing/blocked video falls back to the static
+       logo for 2s. -->
+  <section id="screen-splash" class="screen splash-screen active" aria-label="Milo Pop Puzzle">
+    <video id="splash-video" src="assets/logo-animated-v1.mp4" poster="assets/logo.png"
+      autoplay muted playsinline preload="auto"></video>
+    <img id="splash-logo" src="assets/logo.png" alt="Milo Pop Puzzle" hidden>
+    <div class="splash-tap" data-i18n="tapToContinue">Tap to continue</div>
+  </section>
+
+  <!-- ================= TERMS =================
+       Terms body stays in English on every language (plain, short, and
+       the same promise everywhere) — only the title and buttons are
+       translated. -->
+  <section id="screen-terms" class="screen" aria-label="Terms and Conditions">
+    <h1 class="terms-title" data-i18n="termsTitle">Terms &amp; Conditions</h1>
+    <div class="terms-body glass" dir="ltr">
+      <p>No account or sign-in is needed to play.</p>
+      <p>Your progress is saved only on this device. Use Backup in Settings to keep it safe.</p>
+      <p>We collect no personal information.</p>
+      <p>Sound and music can be muted anytime in Settings.</p>
+      <p>This test copy shows our own Purrfect Pet promo video after a Classic run ends. The live web version has no ads. The future Play Store app may show ads and offer Remove Ads / Pro as one-time purchases.</p>
+      <p>This game is for all ages — children should play together with family.</p>
+    </div>
+    <div class="terms-note" id="terms-decline-note" hidden><span data-i18n="termsNeedAccept">Please accept the Terms to play.</span></div>
+    <div class="go-btns terms-btns">
+      <button class="big-btn green" id="btn-terms-accept"><span data-i18n="termsAccept">Accept</span></button>
+      <button class="big-btn blue" id="btn-terms-decline"><span data-i18n="termsDecline">Decline</span></button>
+    </div>
+  </section>
+
+  <!-- ================= HOME ================= -->
+  <section id="screen-home" class="screen" aria-label="Home">
+    <div class="top-bar">
+      <span class="coin-pill"><span class="coin">🪙</span><span id="home-coins">0</span></span>
+      <button class="icon-btn" id="btn-settings" data-i18n-aria="settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    </div>
+
+    <div class="logo" aria-label="Milo Pop Puzzle">
+      <span class="logo-milo">Milo<span class="logo-paw">🐾</span></span>
+      <span class="logo-pop">POP PUZZLE</span>
+    </div>
+
+    <div class="milo-wrap">
+      <img src="assets/milo.webp" alt="Milo the cat" id="milo-img">
+      <span class="milo-star">⭐</span>
+    </div>
+
+    <button class="play-btn" id="btn-play"><span data-i18n="play">PLAY</span></button>
+
+    <div class="diff-row">
+      <span class="diff-label" data-i18n="difficulty">Difficulty</span>
+      <button class="diff-pill selected" id="diff-easy" data-diff="easy" data-i18n="easy">Easy</button>
+      <button class="diff-pill" id="diff-medium" data-diff="medium" data-i18n="medium">Medium</button>
+    </div>
+
+    <button class="mode-card glass" id="card-classic">
+      <span class="mode-icon">🧩</span>
+      <span>
+        <h2 data-i18n="classic">Classic</h2>
+        <p data-i18n="classicDesc">Endless puzzle — no timer, just pop!</p>
+      </span>
+      <span class="mode-go">▶</span>
+    </button>
+
+    <button class="mode-card glass" id="card-adventure">
+      <span class="mode-icon">🗺️</span>
+      <span>
+        <h2 data-i18n="adventure">Adventure</h2>
+        <p data-i18n="adventureDesc">500 levels — travel with Milo!</p>
+      </span>
+      <span class="mode-stars" id="adv-total-stars">⭐ 0</span>
+      <span class="mode-go">▶</span>
+    </button>
+
+    <button class="mode-card glass" id="card-daily">
+      <span class="mode-icon">📅</span>
+      <span>
+        <h2 data-i18n="daily">Daily Challenge</h2>
+        <p data-i18n="dailyDesc">One puzzle a day — keep your streak!</p>
+      </span>
+      <span class="mode-stars" id="daily-streak-chip">🔥 0</span>
+      <span class="mode-go">▶</span>
+    </button>
+
+    <button class="mode-card glass" id="card-weekly">
+      <span class="mode-icon">🗓️</span>
+      <span>
+        <h2 data-i18n="weekly">Weekly Challenge</h2>
+        <p data-i18n="weeklyDesc">A new challenge every Monday!</p>
+      </span>
+      <span class="mode-stars" id="weekly-badges-chip">🏅 0</span>
+      <span class="mode-go">▶</span>
+    </button>
+
+    <button class="mode-card glass" id="card-missions">
+      <span class="mode-icon">🎯</span>
+      <span>
+        <h2 data-i18n="missions">Missions</h2>
+        <p data-i18n="missionsDesc">Complete missions, earn coins!</p>
+      </span>
+      <span class="mode-stars" id="missions-progress-chip">0/5</span>
+      <span class="mode-go">▶</span>
+    </button>
+
+    <button class="mode-card glass" id="card-relax">
+      <span class="mode-icon">😌</span>
+      <span>
+        <h2 data-i18n="relax">Relax</h2>
+        <p data-i18n="relaxDesc">Never fails — play as long as you like!</p>
+      </span>
+      <span class="mode-go">▶</span>
+    </button>
+
+    <button class="mode-card glass" id="card-collections">
+      <span class="mode-icon">🏆</span>
+      <span>
+        <h2 data-i18n="collections">Collections</h2>
+        <p data-i18n="collectionsDesc">Your themes, badges and stars</p>
+      </span>
+      <span class="mode-stars" id="coll-stars-chip">⭐ 0</span>
+      <span class="mode-go">▶</span>
+    </button>
+
+    <div class="best-line"><span data-i18n="best">Best</span>: <b id="home-best">0</b></div>
+  </section>
+
+  <!-- ================= ADVENTURE MAP ================= -->
+  <section id="screen-map" class="screen" aria-label="Adventure map">
+    <div class="map-head">
+      <button class="icon-btn" id="btn-map-home" data-i18n-aria="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></button>
+      <h2 class="map-title" data-i18n="adventure">Adventure</h2>
+      <span class="map-stars-pill">⭐ <b id="map-total-stars">0</b></span>
+    </div>
+
+    <div class="diff-row map-diff">
+      <button class="diff-pill selected" id="map-diff-easy" data-diff="easy" data-i18n="easy">Easy</button>
+      <button class="diff-pill" id="map-diff-medium" data-diff="medium" data-i18n="medium">Medium</button>
+    </div>
+
+    <div class="world-strip" id="world-strip"></div>
+
+    <div class="map-scroll" id="map-scroll">
+      <div class="map-path" id="map-path"></div>
+    </div>
+
+    <div class="map-foot"><span data-i18n="tapLevel">Tap a level to play</span></div>
+  </section>
+
+  <!-- ================= DAILY CHALLENGE ================= -->
+  <section id="screen-daily" class="screen" aria-label="Daily Challenge">
+    <div class="map-head">
+      <button class="icon-btn" id="btn-daily-home" data-i18n-aria="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></button>
+      <h2 class="map-title" data-i18n="daily">Daily Challenge</h2>
+      <span class="map-stars-pill">🔥 <b id="daily-streak-top">0</b></span>
+    </div>
+
+    <div class="chal-hero glass">
+      <div class="chal-date"><span data-i18n="todaysPuzzle">Today's puzzle</span> • <b id="daily-date"></b></div>
+      <div class="chal-goal" id="daily-goal"></div>
+      <div class="chal-meta">
+        <span class="chal-diff" id="daily-diff"></span>
+        <span class="chal-reward">🪙 +<b id="daily-reward">50</b></span>
+      </div>
+      <div class="streak-row">
+        <span class="streak-flame">🔥</span>
+        <span class="streak-num" id="daily-streak-num">0</span>
+        <span class="streak-lbl" data-i18n="streak">Streak</span>
+      </div>
+      <div class="next-reward" id="daily-next-reward"></div>
+    </div>
+
+    <div class="sec-label chal-sec" data-i18n="themes">Themes</div>
+    <div class="themes-row" id="daily-themes"></div>
+
+    <button class="big-btn green chal-play" id="btn-daily-play">▶ <span data-i18n="play">PLAY</span></button>
+    <div class="chal-done" id="daily-done" hidden>✓ <span data-i18n="alreadyDone">Done today!</span> <span data-i18n="comeBackTomorrow">Come back tomorrow!</span></div>
+  </section>
+
+  <!-- ================= WEEKLY CHALLENGE ================= -->
+  <section id="screen-weekly" class="screen" aria-label="Weekly Challenge">
+    <div class="map-head">
+      <button class="icon-btn" id="btn-weekly-home" data-i18n-aria="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></button>
+      <h2 class="map-title" data-i18n="weekly">Weekly Challenge</h2>
+      <span class="map-stars-pill">🏅 <b id="weekly-badges-top">0</b></span>
+    </div>
+
+    <div class="chal-hero glass">
+      <div class="chal-date"><span data-i18n="thisWeek">This week</span> • <b id="weekly-date"></b></div>
+      <div class="chal-goal" id="weekly-goal"></div>
+      <div class="chal-meta">
+        <span class="chal-diff" id="weekly-diff"></span>
+        <span class="chal-reward">🪙 +<b id="weekly-reward">100</b> • 🏅 <span data-i18n="badge">Badge</span></span>
+      </div>
+      <div class="next-reward" id="weekly-state"></div>
+    </div>
+
+    <div class="sec-label chal-sec" data-i18n="badges">Badges</div>
+    <div class="badge-row" id="weekly-badges"></div>
+
+    <button class="big-btn green chal-play" id="btn-weekly-play">▶ <span data-i18n="play">PLAY</span></button>
+    <div class="chal-done" id="weekly-done" hidden>🏅 <span id="weekly-done-text"></span></div>
+  </section>
+
+  <!-- ================= MISSIONS ================= -->
+  <section id="screen-missions" class="screen" aria-label="Missions">
+    <div class="map-head">
+      <button class="icon-btn" id="btn-missions-home" data-i18n-aria="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></button>
+      <h2 class="map-title" data-i18n="missions">Missions</h2>
+      <span class="map-stars-pill"><b id="missions-done-top">0/5</b></span>
+    </div>
+
+    <div class="missions-list" id="missions-list"></div>
+  </section>
+
+  <!-- ================= COLLECTIONS ================= -->
+  <section id="screen-collections" class="screen" aria-label="Collections">
+    <div class="map-head">
+      <button class="icon-btn" id="btn-coll-home" data-i18n-aria="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></button>
+      <h2 class="map-title" data-i18n="collections">Collections</h2>
+      <span class="map-stars-pill">⭐ <b id="coll-total-stars-top">0</b></span>
+    </div>
+
+    <div class="coll-hero glass">
+      <div class="coll-stars-line"><span data-i18n="totalStars">Total stars</span>: <b id="coll-total-stars">⭐ 0 / 1,500</b></div>
+      <div class="mission-bar"><span class="mission-fill" id="coll-stars-fill" style="width:0%"></span></div>
+      <div class="coll-split"><span id="coll-stars-easy">⭐ 0 / 750</span><span id="coll-stars-medium">⭐ 0 / 750</span></div>
+    </div>
+
+    <div class="sec-label chal-sec" data-i18n="themes">Themes</div>
+    <div class="themes-row" id="coll-themes"></div>
+
+    <div class="sec-label chal-sec" data-i18n="weeklyBadges">Weekly badges</div>
+    <div class="badge-row" id="coll-badges"></div>
+
+    <div class="sec-label chal-sec" data-i18n="missions">Missions</div>
+    <button class="mode-card glass" id="coll-missions-card">
+      <span class="mode-icon">🎯</span>
+      <span>
+        <h2 data-i18n="missions">Missions</h2>
+        <p data-i18n="missionsDesc">Complete missions, earn coins!</p>
+      </span>
+      <span class="mode-stars" id="coll-missions-count">0/5</span>
+      <span class="mode-go">▶</span>
+    </button>
+
+    <div class="sec-label chal-sec" data-i18n="yourProgress">Your progress</div>
+    <div class="coll-stats glass">
+      <span>⭐ <span data-i18n="best">Best</span>: <b id="coll-best">0</b></span>
+      <span>🪙 <span data-i18n="coins">Coins</span>: <b id="coll-coins">0</b></span>
+    </div>
+
+    <button class="big-btn blue chal-play" id="btn-coll-backup">💾 <span data-i18n="backupTitle">Backup &amp; Restore</span></button>
+  </section>
+
+  <!-- ================= BOARD ================= -->
+  <section id="screen-board" class="screen" aria-label="Game board">
+    <div class="score-bar glass">
+      <button class="icon-btn" id="btn-board-home" data-i18n-aria="home" aria-label="Home" style="width:44px;height:44px;min-width:44px;font-size:22px;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg></button>
+      <div class="score-box">
+        <div class="lbl" data-i18n="score">Score</div>
+        <div class="val" id="score-val">0</div>
+      </div>
+      <div class="combo-badge" id="combo-badge" style="visibility:hidden;">
+        <div class="lbl" data-i18n="combo">Combo</div>
+        <div class="val" id="combo-val">×2</div>
+        <div class="pts" id="combo-points"></div>
+      </div>
+      <span class="coin-pill" style="padding:6px 12px;font-size:16px;"><span class="coin">🪙</span><span id="board-coins">0</span></span>
+    </div>
+
+    <div class="goal-bar glass" id="goal-bar" hidden>
+      <div class="goal-info">
+        <span class="goal-level" id="goal-level-label">Level 1</span>
+        <span class="goal-text" id="goal-text">Reach 60 points</span>
+      </div>
+      <div class="goal-track" id="goal-track">
+        <div class="goal-fill" id="goal-fill"></div>
+        <span class="goal-mark" id="goal-mark-1">★</span>
+        <span class="goal-mark" id="goal-mark-2">★</span>
+        <span class="goal-mark" id="goal-mark-3">★</span>
+      </div>
+      <button class="goal-map-btn" id="btn-goal-map" data-i18n-aria="backToMap" aria-label="Map">🗺️</button>
+    </div>
+
+    <div class="relax-bar glass" id="relax-bar" hidden>
+      <span class="relax-emoji">😌</span>
+      <span data-i18n="relax">Relax</span> •
+      <span data-i18n="linesCleared">Lines cleared</span>: <b id="relax-lines">0</b>
+    </div>
+
+    <div class="board-panel glass">
+      <div class="preview-ribbon" id="preview-ribbon" hidden><span data-i18n="enginePreview">Preview</span></div>
+      <div class="board" id="board" role="grid" aria-label="8 by 8 board"></div>
+    </div>
+
+    <div class="action-row">
+      <button class="action-btn" id="btn-undo">
+        <span class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg></span>
+        <span class="lbl" data-i18n="undo">Undo</span>
+        <span class="count" id="undo-count"></span>
+      </button>
+      <button class="action-btn" id="btn-hint">
+        <span class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span>
+        <span class="lbl" data-i18n="hint">Hint</span>
+      </button>
+      <button class="action-btn" id="btn-hold">
+        <span class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd23e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span>
+        <span class="lbl" data-i18n="hold">Hold</span>
+      </button>
+    </div>
+
+    <div class="tray-panel glass" id="tray"></div>
+
+    <div class="board-foot"><span data-i18n="best">Best</span>: <b id="board-best">0</b></div>
+  </section>
+
+  <!-- ================= GAME OVER ================= -->
+  <section id="screen-gameover" class="screen" aria-label="Game over">
+    <h1 class="go-title" data-i18n="gameOver">Game Over</h1>
+
+    <!-- Golden trophy, drawn in SVG (no image file needed) -->
+    <svg class="trophy" viewBox="0 0 200 190" aria-hidden="true">
+      <defs>
+        <linearGradient id="goldT" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff8c4"/><stop offset="0.45" stop-color="#ffd23e"/>
+          <stop offset="0.8" stop-color="#f59e0b"/><stop offset="1" stop-color="#b45309"/>
+        </linearGradient>
+      </defs>
+      <path d="M45 30 Q20 30 20 60 Q20 95 55 100 L60 88 Q38 84 38 60 Q38 48 48 48 Z" fill="url(#goldT)"/>
+      <path d="M155 30 Q180 30 180 60 Q180 95 145 100 L140 88 Q162 84 162 60 Q162 48 152 48 Z" fill="url(#goldT)"/>
+      <path d="M55 28 H145 L140 105 Q138 125 120 132 L118 150 H82 L80 132 Q62 125 60 105 Z" fill="url(#goldT)"/>
+      <rect x="78" y="150" width="44" height="10" rx="4" fill="url(#goldT)"/>
+      <rect x="62" y="160" width="76" height="14" rx="6" fill="url(#goldT)"/>
+      <path d="M100 44 L105 56 L118 57 L108 66 L111 79 L100 72 L89 79 L92 66 L82 57 L95 56 Z" fill="#fff7cc" opacity="0.9"/>
+    </svg>
+
+    <div class="stars-row" id="go-stars" aria-hidden="true">
+      <span class="star" data-star="1">★</span>
+      <span class="star" data-star="2">★</span>
+      <span class="star" data-star="3">★</span>
+    </div>
+
+    <div class="go-score-card glass">
+      <div class="lbl" data-i18n="score">Score</div>
+      <div class="val" id="go-score">0</div>
+      <div class="best-badge" id="go-best-badge">⭐ <span data-i18n="newBestScore">New Best Score!</span></div>
+    </div>
+
+    <div class="go-btns">
+      <button class="big-btn green" id="btn-try-again">↻ <span data-i18n="tryAgain">Try Again</span></button>
+      <button class="big-btn blue" id="btn-go-home">🏠 <span data-i18n="home">Home</span></button>
+    </div>
+  </section>
+
+  <!-- ================= LEVEL RESULT (Adventure) ================= -->
+  <section id="screen-level-result" class="screen" aria-label="Level result">
+    <h1 class="go-title" id="lr-title" data-i18n="levelComplete">Level Complete!</h1>
+
+    <div class="stars-row" id="lr-stars" aria-hidden="true">
+      <span class="star" data-star="1">★</span>
+      <span class="star" data-star="2">★</span>
+      <span class="star" data-star="3">★</span>
+    </div>
+
+    <div class="go-score-card glass">
+      <div class="lbl" data-i18n="score">Score</div>
+      <div class="val" id="lr-score">0</div>
+      <div class="best-badge" id="lr-best-badge">⭐ <span data-i18n="newBestScore">New Best Score!</span></div>
+      <div class="lr-best-line"><span data-i18n="best">Best</span>: <b id="lr-best">0</b></div>
+    </div>
+
+    <div class="go-btns">
+      <button class="big-btn green" id="btn-lr-next">▶ <span data-i18n="nextLevel">Next Level</span></button>
+      <button class="big-btn blue" id="btn-lr-retry">↻ <span data-i18n="retry">Retry</span></button>
+      <button class="big-btn blue" id="btn-lr-map">🗺️ <span data-i18n="backToMap">Map</span></button>
+    </div>
+  </section>
+
+  <!-- ================= SETTINGS ================= -->
+  <div class="modal-backdrop" id="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="modal">
+      <h2 data-i18n="settings">Settings</h2>
+
+      <div class="sec-label" data-i18n="language">Language</div>
+      <div class="lang-grid" id="lang-grid"></div>
+
+      <div class="sec-label" data-i18n="sound">Sound</div>
+      <div class="sound-row glass">
+        <span class="lbl" id="sound-state-label">🔊 <span data-i18n="soundOn">Sound on</span></span>
+        <button class="switch on" id="mute-switch" role="switch" aria-checked="false" aria-label="Mute"></button>
+      </div>
+      <div class="sound-note" id="sound-note"></div>
+
+      <div class="sec-label" data-i18n="backupTitle">Backup &amp; Restore</div>
+      <div class="backup-box glass">
+        <div class="backup-hint" data-i18n="backupHint">Save your progress to a file or code, and restore it on any device.</div>
+        <div class="backup-btns">
+          <button class="backup-btn" id="btn-backup-download">⬇️ <span data-i18n="downloadBackup">Download backup file</span></button>
+          <button class="backup-btn" id="btn-backup-file">📂 <span data-i18n="restoreFromFile">Restore from file</span></button>
+          <input type="file" id="backup-file-input" accept=".json,application/json" hidden>
+        </div>
+        <div class="backup-btns">
+          <button class="backup-btn" id="btn-backup-code">📋 <span data-i18n="showBackupCode">Show my backup code</span></button>
+          <button class="backup-btn" id="btn-copy-code" hidden>📋 <span data-i18n="copyCode">Copy code</span></button>
+        </div>
+        <textarea class="backup-code" id="backup-code-out" readonly hidden rows="3"></textarea>
+        <textarea class="backup-code" id="backup-code-in" rows="3" placeholder="Paste your backup code here"></textarea>
+        <button class="backup-btn wide" id="btn-restore-code">↺ <span data-i18n="restoreFromCode">Restore from code</span></button>
+        <div class="backup-status" id="backup-status"></div>
+        <button class="backup-btn green wide" id="btn-backup-apply" hidden>✓ <span data-i18n="restore">Restore</span></button>
+      </div>
+
+      <div class="sec-label" data-i18n="termsLink">Terms &amp; Conditions</div>
+      <div class="backup-box glass">
+        <div class="backup-btns">
+          <button class="backup-btn wide" id="btn-open-terms">📄 <span data-i18n="termsLink">Terms &amp; Conditions</span></button>
+        </div>
+      </div>
+
+      <button class="modal-close" id="btn-settings-close" data-i18n="close">Close</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+</div>
+
+<!-- Tutorial hand (Block Blast style): a pointing hand that travels from
+     the tray piece to the board target on the player's very first game.
+     pointer-events:none — it can never block a drag. Lives outside #app
+     so no screen can clip it. -->
+<div id="tut-hand" hidden>
+  <div class="tut-hand-emoji">👆</div>
+  <div class="tut-hand-text"><span data-i18n="tutDragHere">Drag the piece here!</span></div>
+</div>
+
+<script>
+/* ============================================================
+   Milo Pop Puzzle — UI layer (Agent 2).
+   Owns: screens, board/tray DOM, i18n, settings, drag input.
+   Does NOT own: game rules/engine (window.MiloPop, Agent 1),
+   music/sounds (window.MiloAudio, Agent 3).
+   If the engine or audio module is missing, the UI shows a
+   clearly-marked preview state and never invents gameplay.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var $ = function (s) { return document.querySelector(s); };
+  var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+  /* ---------- persisted state ---------- */
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem("mpp_" + k); return v === null ? d : v; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem("mpp_" + k, v); } catch (e) { /* private mode */ } }
+  };
+
+  var state = {
+    lang: store.get("lang", "en"),
+    muted: store.get("muted", "false") === "true",
+    difficulty: store.get("difficulty", "easy"),
+    coins: parseInt(store.get("coins", "0"), 10) || 0,
+    best: parseInt(store.get("best", "0"), 10) || 0,
+    score: 0,
+    combo: 1,
+    undoLeft: null,           /* null = unlimited/unknown; engine sets it */
+    selectedPiece: -1,
+    preview: false
+  };
+
+  /* ---------- bridges ---------- */
+  function engine() { return window.MiloPop || null; }
+  function audioMod() { return window.MiloAudio || window.MiloPopAudio || null; }
+  function engineReady() { return !!engine() && !window.__miloEngineMissing; }
+
+  /* ---------- i18n ---------- */
+  function t(key) {
+    var lang = window.MILO_I18N[state.lang] ? state.lang : "en";
+    var pack = window.MILO_I18N[lang] || window.MILO_I18N.en;
+    return (pack && pack[key]) || window.MILO_I18N.en[key] || key;
+  }
+
+  function applyLanguage() {
+    var lang = window.MILO_I18N[state.lang] ? state.lang : "en";
+    document.documentElement.lang = lang === "zh" ? "zh-Hans" : lang;
+    document.documentElement.dir = (window.MILO_RTL || []).indexOf(lang) >= 0 ? "rtl" : "ltr";
+    $$("[data-i18n]").forEach(function (el) {
+      var k = el.getAttribute("data-i18n");
+      if (window.MILO_I18N[lang] && window.MILO_I18N[lang][k]) el.textContent = t(k);
+    });
+    $$("[data-i18n-aria]").forEach(function (el) {
+      var k = el.getAttribute("data-i18n-aria");
+      el.setAttribute("aria-label", t(k));
+    });
+    $$("#lang-grid .lang-btn").forEach(function (b) {
+      b.classList.toggle("selected", b.getAttribute("data-lang") === lang);
+    });
+    /* JS-rendered challenge screens re-render in the new language. */
+    try {
+      if ($("#screen-daily") && $("#screen-daily").classList.contains("active")) refreshDailyScreen();
+      if ($("#screen-weekly") && $("#screen-weekly").classList.contains("active")) refreshWeeklyScreen();
+      if ($("#screen-missions") && $("#screen-missions").classList.contains("active")) renderMissions();
+      if ($("#screen-collections") && $("#screen-collections").classList.contains("active")) renderCollections();
+      var codeIn = $("#backup-code-in");
+      if (codeIn) codeIn.placeholder = t("pasteCode");
+      refreshHomeChips();
+    } catch (e) { /* challenge screens not ready yet */ }
+    updateSoundUI();
+  }
+
+  function setLanguage(code) {
+    if (!window.MILO_I18N[code]) return;
+    state.lang = code;
+    store.set("lang", code);
+    applyLanguage();
+  }
+
+  /* ---------- audio wiring (Agent 3 owns the module) ---------- */
+  function updateSoundUI() {
+    var sw = $("#mute-switch");
+    sw.classList.toggle("on", !state.muted);
+    sw.setAttribute("aria-checked", String(!state.muted));
+    $("#sound-state-label").innerHTML = (state.muted ? "🔇 " : "🔊 ") + "<span>" + t(state.muted ? "soundOff" : "soundOn") + "</span>";
+    $("#sound-note").textContent = audioMod() ? "" : t("soundLoading");
+  }
+
+  function setMuted(m) {
+    state.muted = !!m;
+    store.set("muted", state.muted ? "true" : "false");
+    var mod = audioMod();
+    if (mod && typeof mod.setMuted === "function") mod.setMuted(state.muted);
+    if (!state.muted && mod && typeof mod.playMusic === "function") {
+      try { mod.playMusic(); } catch (e) { /* audio not ready */ }
+    }
+    updateSoundUI();
+  }
+
+  function sfx(name) {
+    if (state.muted) return;
+    var mod = audioMod();
+    if (!mod) return;
+    var fn = { pop: "playPop", combo: "playCombo", gameover: "playGameOver", click: "playClick" }[name];
+    if (fn && typeof mod[fn] === "function") { try { mod[fn](); } catch (e) { /* ignore */ } }
+  }
+
+  function startMusic() {
+    if (state.muted) return;
+    var mod = audioMod();
+    if (mod && typeof mod.playMusic === "function") { try { mod.playMusic(); } catch (e) { /* needs gesture */ } }
+  }
+
+  /* ---------- screens ---------- */
+  function showScreen(name) {
+    $$(".screen").forEach(function (s) { s.classList.remove("active"); });
+    var el = $("#screen-" + name);
+    if (el) el.classList.add("active");
+    if (name === "board") fitTrayPieces();
+    else tutHide(); /* leaving the board hides the tutorial hand (un-done) */
+  }
+
+  /* ---------- opening flow: splash -> Terms -> Home ----------
+     Splash shows every launch (~4s, the animated logo). Terms is asked
+     ONCE and remembered in localStorage (mpp_terms_v1 = "accepted").
+     The splash can never trap the player: auto-advance, tap-to-skip, and
+     a video error/slow load falls back to the static logo for 2s. */
+  var TERMS_KEY = "terms_v1";
+  var splashDone = false;
+  var splashTimer = null;
+  var termsFromSettings = false;
+
+  function termsAccepted() { return store.get(TERMS_KEY, "") === "accepted"; }
+
+  function showTerms(fromSettings) {
+    termsFromSettings = !!fromSettings;
+    var note = $("#terms-decline-note");
+    if (note) note.hidden = true;
+    showScreen("terms");
+  }
+
+  function endSplash() {
+    if (splashDone) return;
+    splashDone = true;
+    clearTimeout(splashTimer);
+    var v = $("#splash-video");
+    if (v) { try { v.pause(); } catch (e) { /* already stopped */ } }
+    if (termsAccepted()) showScreen("home");
+    else showTerms(false);
+  }
+
+  function startSplash() {
+    splashDone = false;
+    showScreen("splash");
+    var v = $("#splash-video"), img = $("#splash-logo");
+    var fallback = function () {
+      if (v) v.style.display = "none";
+      if (img) img.hidden = false;
+      clearTimeout(splashTimer);
+      splashTimer = setTimeout(endSplash, 2000); /* static logo, then move on */
+    };
+    if (v) {
+      v.addEventListener("error", fallback);
+      v.addEventListener("ended", function () { setTimeout(endSplash, 300); });
+      var p = null;
+      try { p = v.play(); } catch (e) { fallback(); }
+      if (p && typeof p.catch === "function") p.catch(fallback);
+    }
+    clearTimeout(splashTimer);
+    splashTimer = setTimeout(endSplash, 5200); /* ~video length + buffer; also the slow-load escape */
+    var scr = $("#screen-splash");
+    if (scr) scr.addEventListener("click", endSplash);
+  }
+
+  function acceptTerms() {
+    sfx("click");
+    store.set(TERMS_KEY, "accepted");
+    termsFromSettings = false;
+    showScreen("home");
+  }
+
+  function declineTerms() {
+    sfx("click");
+    var note = $("#terms-decline-note");
+    if (note) note.hidden = false; /* stay on Terms — the game needs acceptance to play */
+  }
+
+  var toastTimer = null;
+  function toast(msg, ms) {
+    var el = $("#toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove("show"); }, ms || 2600);
+  }
+
+  /* ---------- score / coins / best ---------- */
+  function fmt(n) { return (n || 0).toLocaleString("en-US"); }
+  function setScore(v) { state.score = v; $("#score-val").textContent = fmt(v); }
+  function setCoins(v) {
+    state.coins = v; store.set("coins", String(v));
+    $("#home-coins").textContent = fmt(v);
+    $("#board-coins").textContent = fmt(v);
+  }
+  function setBest(v) {
+    state.best = v; store.set("best", String(v));
+    $("#home-best").textContent = fmt(v);
+    $("#board-best").textContent = fmt(v);
+  }
+  var comboTimer = null;
+  function setCombo(n, gained) {
+    state.combo = n;
+    var badge = $("#combo-badge");
+    if (n > 1) {
+      badge.style.visibility = "visible";
+      badge.classList.remove("pop"); void badge.offsetWidth; badge.classList.add("pop");
+      $("#combo-val").textContent = "×" + n;
+      $("#combo-points").textContent = (gained > 0) ? "+" + fmt(gained) : "";
+      sfx("combo");
+      clearTimeout(comboTimer);
+      comboTimer = setTimeout(function () { badge.style.visibility = "hidden"; comboTimer = null; }, 1600);
+    } else if (!comboTimer) {
+      badge.style.visibility = "hidden";
+    }
+  }
+  function setUndoCount(n) {
+    state.undoLeft = n;
+    $("#undo-count").textContent = (n === null || n === undefined) ? "" : "×" + n;
+    $("#btn-undo").disabled = (n === 0);
+  }
+
+  /* ---------- board + tray (DOM the engine drives) ---------- */
+  var BLOCK_COLORS = ["purple", "blue", "pink", "teal", "gold"];
+  var boardEl = $("#board");
+  var trayEl = $("#tray");
+  var cells = [];
+
+  function buildBoard() {
+    boardEl.innerHTML = "";
+    cells = [];
+    for (var r = 0; r < 8; r++) {
+      for (var c = 0; c < 8; c++) {
+        var d = document.createElement("div");
+        d.className = "cell";
+        d.setAttribute("role", "gridcell");
+        d.dataset.row = r; d.dataset.col = c;
+        boardEl.appendChild(d);
+        cells.push(d);
+      }
+    }
+  }
+
+  /* grid: 8x8 array of color keys ("purple"|"blue"|"pink"|"teal"|"gold") or null */
+  function renderBoard(grid) {
+    if (!grid) return;
+    for (var r = 0; r < 8; r++) {
+      for (var c = 0; c < 8; c++) {
+        var cell = cells[r * 8 + c];
+        var col = grid[r] && grid[r][c];
+        cell.className = "cell" + (col ? " filled blk-" + col : "");
+      }
+    }
+  }
+
+  function clearBoard() { renderBoard(emptyGrid()); }
+  function emptyGrid() { var g = []; for (var i = 0; i < 8; i++) g.push([null, null, null, null, null, null, null, null]); return g; }
+
+  /* pieces: [{ color, cells: [[r,c],...] }] — cells relative to the piece's top-left */
+  function renderTray(pieces) {
+    trayEl.innerHTML = "";
+    state.selectedPiece = -1;
+    (pieces || []).forEach(function (piece, idx) {
+      var slot = document.createElement("div");
+      slot.className = "tray-slot";
+      slot.dataset.piece = idx;
+      if (piece) {
+        var maxR = 0, maxC = 0;
+        piece.cells.forEach(function (cc) { maxR = Math.max(maxR, cc[0]); maxC = Math.max(maxC, cc[1]); });
+        var el = document.createElement("div");
+        el.className = "piece";
+        el.dataset.pieceIndex = idx;
+        el.style.gridTemplateColumns = "repeat(" + (maxC + 1) + ", auto)";
+        el.style.gridTemplateRows = "repeat(" + (maxR + 1) + ", auto)";
+        for (var r = 0; r <= maxR; r++) {
+          for (var c = 0; c <= maxC; c++) {
+            var m = document.createElement("div");
+            var filled = piece.cells.some(function (cc) { return cc[0] === r && cc[1] === c; });
+            m.className = "mini" + (filled ? " blk-" + piece.color : " empty");
+            m.dataset.row = r; m.dataset.col = c;
+            el.appendChild(m);
+          }
+        }
+        slot.appendChild(el);
+        wirePiece(el, idx);
+      }
+      trayEl.appendChild(slot);
+    });
+    /* pad to 3 slots so the tray never collapses */
+    while (trayEl.children.length < 3) {
+      var s = document.createElement("div");
+      s.className = "tray-slot";
+      trayEl.appendChild(s);
+    }
+    fitTrayPieces();
+    /* refresh() destroys the old controller and returns a NEW one — the
+       return value MUST be kept. Dropping it (the old code) orphaned the
+       new controller while dragController kept pointing at the destroyed
+       one, so every sync leaked a live duplicate controller and every
+       drag was then handled TWICE: the second controller's pointerup
+       placed a second, unchosen piece (from a refilled tray) at a wrong
+       cell. Measured live 27 Nov 2026: two 'place' events ~5ms apart per
+       drag whenever the drop emptied the tray. */
+    if (dragController && typeof dragController.refresh === "function") dragController = dragController.refresh();
+  }
+
+  /* Scale wide tray pieces down so they fit their slot (tray minis are big now). */
+  function fitTrayPieces() {
+    $$("#tray .piece").forEach(function (p) {
+      p.style.transform = "";
+      var slot = p.parentElement;
+      if (!slot) return;
+      var pw = p.offsetWidth, sw = slot.clientWidth;
+      if (pw > 0 && sw > 0 && pw > sw) p.style.transform = "scale(" + (sw / pw).toFixed(3) + ")";
+    });
+  }
+
+  function popCells(list, done) {
+    (list || []).forEach(function (cc) {
+      var cell = cells[cc[0] * 8 + cc[1]];
+      if (cell) cell.classList.add("popping");
+    });
+    sfx("pop");
+    setTimeout(function () {
+      (list || []).forEach(function (cc) {
+        var cell = cells[cc[0] * 8 + cc[1]];
+        if (cell) cell.classList.remove("popping");
+      });
+      if (done) done();
+    }, 380);
+  }
+
+  /* ---------- drag + tap-to-place (input only — the engine validates) ----------
+     Dragging is the engine's tested drag controller (MiloPop.createDragController).
+     The engine owns the drag; this UI draws the ghost highlight on the board AND
+     renders a floating clone of the dragged tray piece under the pointer
+     (Block Blast style) — render-only, it never touches the engine. */
+  var dragController = null;
+
+  /* Floating dragged piece (visual only). The clone is appended to <body>
+     with pointer-events:none, so it can never intercept the engine drag
+     controller's pointer events. While a drag is active the original tray
+     piece gets the .dragging class (dimmed + shrunk = "lifted"). */
+  var floatClone = null;
+  var floatSrc = null;
+  var floatWired = false;
+  /* True while a drag is in progress (set in startFloat, cleared in
+     endFloat). syncFromEngine() defers while this is true — see its
+     comment. pendingSync remembers a deferred sync to flush at drag end. */
+  var dragActive = false;
+  var pendingSync = false;
+  /* The piece being dragged, cached once at drag start so onGhost never
+     calls eng.getState() (a deep clone) on every pointermove. */
+  var dragPiece = null;
+
+  function endFloat() {
+    if (floatClone && floatClone.parentNode) floatClone.parentNode.removeChild(floatClone);
+    floatClone = null;
+    if (floatSrc) { floatSrc.classList.remove("dragging"); floatSrc = null; }
+    dragPiece = null;
+    document.body.classList.remove("dragging");
+    if (dragActive) {
+      dragActive = false;
+      if (pendingSync) { pendingSync = false; syncFromEngine(); }
+    }
+  }
+
+  /* Move the clone with transform (compositor-only) instead of left/top,
+     which forced a layout on every pointermove — the clone lagged the
+     finger on cheap phones. left/top stay 0; the transform carries the
+     pointer position plus the -50% centring and 1.1x lift scale. */
+  function moveFloat(x, y) {
+    if (!floatClone) return;
+    floatClone.style.transform = "translate3d(" + x + "px," + y + "px,0) translate(-50%,-50%) scale(1.1)";
+  }
+
+  function startFloat(srcEl, x, y) {
+    endFloat();
+    if (!srcEl) return;
+    var clone = srcEl.cloneNode(true);
+    clone.removeAttribute("data-piece-index");
+    clone.classList.add("drag-float");
+    clone.style.left = "0px";
+    clone.style.top = "0px";
+    document.body.appendChild(clone);
+    floatClone = clone;
+    floatSrc = srcEl;
+    srcEl.classList.add("dragging");
+    dragActive = true;
+    /* Pause infinite CSS animations while dragging (tutorial bob, map
+       pulse, trophy glow) — one less thing repainting under the finger.
+       Static look is unchanged; animations resume on drop. */
+    document.body.classList.add("dragging");
+    var idx = srcEl.getAttribute ? parseInt(srcEl.getAttribute("data-piece-index"), 10) : -1;
+    var eng = engine();
+    if (eng && typeof eng.getState === "function" && idx >= 0) {
+      var st = eng.getState();
+      dragPiece = st && st.tray ? st.tray[idx] : null;
+    }
+    moveFloat(x, y);
+  }
+
+  /* Cells currently highlighted — tracked here so highlightTarget never
+     re-queries the whole document on every pointermove. */
+  var highlightedCells = [];
+  function highlightTarget(anchorRow, anchorCol, piece) {
+    highlightedCells.forEach(function (c) { c.classList.remove("preview-target"); });
+    highlightedCells = [];
+    if (anchorRow === null || anchorRow === undefined || !piece) return;
+    piece.cells.forEach(function (cc) {
+      var r = anchorRow + cc[0], c = anchorCol + cc[1];
+      if (r >= 0 && r < 8 && c >= 0 && c < 8) {
+        var cell = cells[r * 8 + c];
+        cell.classList.add("preview-target");
+        highlightedCells.push(cell);
+      }
+    });
+  }
+
+  /* Place through the engine. Returns true when the piece landed. */
+  function placeViaEngine(pieceIdx, anchorRow, anchorCol) {
+    var eng = engine();
+    if (!eng || typeof eng.placePiece !== "function") { toast(t("engineNotReady")); return false; }
+    if (typeof eng.canPlace === "function" && !eng.canPlace(pieceIdx, anchorRow, anchorCol)) return false;
+    var res = eng.placePiece(pieceIdx, anchorRow, anchorCol);
+    if (!res || !res.ok) return false;
+    setTimeout(syncFromEngine, 400); /* safety net — events normally re-render first */
+    return true;
+  }
+
+  /* Engine state -> UI. The engine is the source of truth when present. */
+  function mapBoard(board) {
+    var colors = (window.MiloPop && window.MiloPop.COLORS) || ["red", "blue", "yellow", "green", "orange", "purple"];
+    var out = [];
+    for (var r = 0; r < 8; r++) {
+      var row = [];
+      for (var c = 0; c < 8; c++) {
+        var v = board && board[r] ? board[r][c] : 0;
+        row.push(v ? colors[v - 1] : null);
+      }
+      out.push(row);
+    }
+    return out;
+  }
+
+  function syncFromEngine(s) {
+    /* NEVER rebuild the UI mid-drag: renderTray() wipes trayEl.innerHTML
+       and dragController.refresh() destroys the drag controller, so a sync
+       landing while the player is dragging destroys the very element under
+       their finger (pointer capture lost, drop never happens). Measured
+       live 27 Nov 2026: 0/8 fast follow-up drags landed — the 400ms
+       safety-net sync from the previous drop fired mid-drag every time.
+       Defer the sync until the drag ends; endFloat() flushes it. */
+    if (dragActive) { pendingSync = true; return; }
+    var eng = engine();
+    if (!eng || typeof eng.getState !== "function") return;
+    s = s || eng.getState();
+    renderBoard(mapBoard(s.board));
+    renderTray(s.tray || []);
+    setScore(s.score || 0);
+    setCoins(s.coins || 0);
+    setBest(s.bestScore || 0);
+    setUndoCount((s.undosLeft === undefined || s.undosLeft === null) ? null : s.undosLeft);
+    setCombo(1);
+    updateRelaxBar(s);
+    /* No refresh() here: renderTray() above already refreshed (and now
+       keeps the new controller). Calling it again created a second live
+       duplicate controller on the same tray pieces — see renderTray. */
+  }
+
+  function setupEngineDrag() {
+    var eng = engine();
+    if (!eng || typeof eng.createDragController !== "function") return;
+    if (dragController && typeof dragController.destroy === "function") dragController.destroy();
+    dragController = eng.createDragController({
+      boardEl: boardEl,
+      trayEl: trayEl,
+      traySelector: "[data-piece-index]",
+      onGhost: function (pieceIndex, row, col, canPlace) {
+        if (row === null || row === undefined || !canPlace) { highlightTarget(null, null, null); return; }
+        /* Piece cached once at drag start (dragPiece) — no getState() clone
+           on every pointermove. Falls back to a live read if the cache is
+           empty (should not happen mid-drag). */
+        var piece = dragPiece;
+        if (!piece) {
+          var st = eng.getState();
+          piece = st && st.tray ? st.tray[pieceIndex] : null;
+        }
+        highlightTarget(row, col, piece);
+      },
+      onDrop: function (result) {
+        endFloat();
+        highlightTarget(null, null, null);
+        if (result && result.ok) setTimeout(syncFromEngine, 400);
+      }
+    });
+    /* The floating clone follows the very same pointer events the engine
+       drag uses — no second drag system, render-only. Listeners are wired
+       once (setupEngineDrag runs once, but guard anyway). */
+    if (!floatWired) {
+      floatWired = true;
+      trayEl.addEventListener("pointerdown", function (ev) {
+        var src = ev.target && ev.target.closest ? ev.target.closest("[data-piece-index]") : null;
+        if (!src || !trayEl.contains(src)) return;
+        var st = eng.getState ? eng.getState() : null;
+        if (!st || st.over) return; /* engine would ignore this drag too */
+        startFloat(src, ev.clientX, ev.clientY);
+      });
+      document.addEventListener("pointermove", function (ev) { moveFloat(ev.clientX, ev.clientY); });
+      document.addEventListener("pointerup", endFloat);
+      document.addEventListener("pointercancel", endFloat);
+    }
+  }
+
+  /* ---------- tutorial hand (first game only, Block Blast style) ----------
+     Brand-new players get a big pointing hand (👆) that travels from the
+     tray piece they should drag to the board cells where it belongs, with
+     the target cells highlighted. Shown ONLY on the very first Classic game
+     and the very first Adventure level (Easy W1 L1, the cross tutorial);
+     the moment the player places their first piece, the flag is stored and
+     the hand never appears again in that mode. Daily/Weekly/Relax never
+     show it. The hand is pointer-events:none and purely visual — it can
+     never block a drag or trap the player: if the target cannot be found
+     (tray changed, hint empty), it simply hides and the game plays on. */
+  var tut = null; /* { mode, pieceIndex, row, col, piece, anim, timer } */
+
+  function tutDone(mode) { return store.get("tut_" + mode, "") === "done"; }
+  function tutMarkDone(mode) { store.set("tut_" + mode, "done"); }
+
+  function tutHide() {
+    if (tut && tut.anim) { try { tut.anim.cancel(); } catch (e) { /* ignore */ } }
+    if (tut && tut.timer) clearTimeout(tut.timer);
+    tut = null;
+    var hand = $("#tut-hand");
+    if (hand) {
+      hand.hidden = true;
+      var txt = hand.querySelector(".tut-hand-text");
+      if (txt) txt.style.transform = "";
+    }
+    highlightTarget(null, null, null);
+  }
+
+  function tutTrayCenter(pieceIndex) {
+    var el = trayEl.querySelector('[data-piece-index="' + pieceIndex + '"]');
+    if (!el) return null;
+    var r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) return null;
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  function tutTargetCenter(row, col, piece) {
+    if (!piece || !cells.length) return null;
+    /* Drops are CENTRE-anchored (the finger aims the piece's visual centre
+       at the target), so the hand must point at the FOOTPRINT'S CENTRE —
+       the centre of the piece's bounding box at the anchor — not at the
+       anchor cell. (Before the centre-anchor fix the hand pointed at the
+       anchor cell; that was the exact 2x2-hole bug found live 27 Nov 2026.)
+       bbox centre in cell units: anchor + (size+1)/2. */
+    var maxR = 0, maxC = 0;
+    piece.cells.forEach(function (cc) {
+      if (cc[0] > maxR) maxR = cc[0];
+      if (cc[1] > maxC) maxC = cc[1];
+    });
+    var rect = boardEl.getBoundingClientRect();
+    var cw = rect.width / 8, ch = rect.height / 8;
+    return {
+      x: rect.left + (col + (maxC + 1) / 2) * cw,
+      y: rect.top + (row + (maxR + 1) / 2) * ch
+    };
+  }
+
+  /* One trip: hand starts on the tray piece, glides to the target cells,
+     then glides back — then the loop re-measures (the tray may have
+     re-rendered) and trips again until the player places a piece. */
+  function tutTrip() {
+    if (!tut) return;
+    var hand = $("#tut-hand");
+    if (!hand) return;
+    var from = tutTrayCenter(tut.pieceIndex);
+    var to = tutTargetCenter(tut.row, tut.col, tut.piece);
+    if (!from || !to) { tutHide(); return; } /* tray changed — give up quietly */
+    hand.style.left = from.x + "px";
+    hand.style.top = from.y + "px";
+    /* Keep the hint bubble on screen: the hand itself must stay exactly
+       on its tray/board points, but the bubble is ~160px wide, so near
+       the left/right edge it would clip (Classic targets in column 0
+       lost the "D" of "Drag"). Slide ONLY the bubble, by the amount the
+       trip's nearer end would overflow, so it stays readable while the
+       pointing hand never moves off target. */
+    var txt = hand.querySelector(".tut-hand-text");
+    if (txt) {
+      var hw = hand.offsetWidth || 0;
+      var vw = window.innerWidth || 390;
+      var lo = Math.min(from.x, to.x) - hw / 2, hi = Math.max(from.x, to.x) + hw / 2;
+      var shift = 0;
+      if (lo < 8) shift = 8 - lo;
+      else if (hi > vw - 8) shift = (vw - 8) - hi;
+      txt.style.transform = shift ? "translateX(" + shift + "px)" : "";
+    }
+    var dx = to.x - from.x, dy = to.y - from.y;
+    try {
+      tut.anim = hand.animate([
+        { transform: "translate(-50%,-50%) translate(0px, 0px)" },
+        { transform: "translate(-50%,-50%) translate(" + dx + "px, " + dy + "px)", offset: 0.55 },
+        { transform: "translate(-50%,-50%) translate(0px, 0px)" }
+      ], { duration: 1800, easing: "ease-in-out", iterations: 1 });
+      tut.anim.onfinish = function () { if (tut) tut.timer = setTimeout(tutTrip, 300); };
+    } catch (e) { /* WAAPI unavailable — the hand still points at the tray */ }
+  }
+
+  function tutShow(mode) {
+    if (tutDone(mode)) return;
+    var eng = engine();
+    if (!eng || typeof eng.getState !== "function") return;
+    var st = eng.getState();
+    if (!st || st.over) return;
+    var pieceIndex = -1, row = -1, col = -1, piece = null;
+    if (mode === "adv") {
+      /* Tutorial level: the tray's 2x2 belongs in the cross hole. */
+      var hole = (advMod() && advMod().CROSS_HOLE) || { row: 3, col: 3 };
+      for (var i = 0; i < st.tray.length; i++) {
+        var p = st.tray[i];
+        if (p && p.key === "square2") { pieceIndex = i; piece = p; break; }
+      }
+      if (pieceIndex >= 0) { row = hole.row; col = hole.col; }
+      else { /* no 2x2 in the tray (should not happen — the tray is forced) */
+        var hf = eng.hint ? eng.hint() : null;
+        if (!hf) return;
+        pieceIndex = hf.pieceIndex; row = hf.row; col = hf.col; piece = hf.piece;
+      }
+    } else {
+      var h = eng.hint ? eng.hint() : null;
+      if (!h) return;
+      pieceIndex = h.pieceIndex; row = h.row; col = h.col; piece = h.piece;
+    }
+    if (pieceIndex < 0 || !piece) return;
+    tutHide(); /* clear any previous run */
+    tut = { mode: mode, pieceIndex: pieceIndex, row: row, col: col, piece: piece, anim: null, timer: null };
+    highlightTarget(row, col, piece);
+    var hand = $("#tut-hand");
+    if (!hand) { tut = null; return; }
+    hand.hidden = false;
+    /* First trip after a beat, so the board has laid out. */
+    tut.timer = setTimeout(tutTrip, 80);
+  }
+
+  function tutDismiss() {
+    /* First placement: the player has learned it — never show again here. */
+    if (!tut) return;
+    tutMarkDone(tut.mode);
+    tutHide();
+  }
+
+  /* Tap a tray piece to select it (used by tap-to-place and Hold). */
+  function wirePiece(el, idx) {
+    el.addEventListener("click", function () {
+      sfx("click");
+      selectPiece(idx);
+    });
+  }
+
+  function selectPiece(idx) {
+    state.selectedPiece = idx;
+    $$(".piece").forEach(function (p) {
+      p.style.outline = (parseInt(p.dataset.pieceIndex, 10) === idx) ? "3px solid #ffd23e" : "none";
+      p.style.outlineOffset = "2px";
+    });
+  }
+
+  /* tap a board cell while a piece is selected = place it there */
+  boardEl.addEventListener("click", function (ev) {
+    if (state.selectedPiece < 0) return;
+    var cellEl = ev.target.closest(".cell");
+    if (!cellEl) return;
+    var r = parseInt(cellEl.dataset.row, 10), c = parseInt(cellEl.dataset.col, 10);
+    /* place so the piece's top-left lands on the tapped cell */
+    placeViaEngine(state.selectedPiece, r, c);
+  });
+
+  /* ---------- game over ---------- */
+  function showGameOver(result) {
+    result = result || {};
+    var score = result.score || 0;
+    var best = result.best !== undefined ? result.best : Math.max(state.best, score);
+    var isNewBest = !!result.isNewBest || score > state.best;
+    if (score > state.best) setBest(score);
+    setScore(score);
+    $("#go-score").textContent = fmt(score);
+    $("#go-best-badge").classList.toggle("show", isNewBest);
+    var stars = result.stars || (score > 0 ? 3 : 0); /* Classic: stars = celebration only */
+    $$("#go-stars .star").forEach(function (s) {
+      s.classList.toggle("lit", parseInt(s.dataset.star, 10) <= stars);
+    });
+    sfx("gameover");
+    showScreen("gameover");
+  }
+
+  /* ---------- start / quit ---------- */
+  function startGame() {
+    adv = null; /* Classic — clear any Adventure context */
+    chal = null; /* Classic — clear any Challenge context */
+    relax = null; /* Classic — clear any Relax context */
+    flushChalCoins(); /* banked mission/challenge rewards land before the new game */
+    $("#goal-bar").hidden = true;
+    $("#relax-bar").hidden = true;
+    sfx("click");
+    startMusic();
+    clearTimeout(comboTimer); comboTimer = null;
+    $("#combo-badge").style.visibility = "hidden";
+    setScore(0);
+    setCombo(1);
+    setUndoCount(state.difficulty === "easy" ? 3 : 1);
+    if (engineReady() && typeof engine().newGame === "function") {
+      state.preview = false;
+      $("#preview-ribbon").hidden = true;
+      syncFromEngine(engine().newGame(state.difficulty));
+      showScreen("board");
+      tutShow("classic"); /* first game only — the hand teaches the drag */
+    } else {
+      /* Preview state: the board renders a fixed demo pattern. NOT playable —
+         the engine is not here yet, and this UI must not invent gameplay. */
+      state.preview = true;
+      $("#preview-ribbon").hidden = false;
+      renderBoard(DEMO_GRID);
+      renderTray(DEMO_PIECES);
+      showScreen("board");
+      toast(t("enginePreviewText"), 3400);
+    }
+  }
+
+  function quitToHome() {
+    sfx("click");
+    state.selectedPiece = -1;
+    if (relax) {
+      /* Relax runs never end via gameover — evaluate missions ONCE, now,
+         from the run's final totals, and bank the best score (the engine
+         only saves it at a gameover, which Relax never reaches). */
+      var cmR = chalMod();
+      var engR = engine();
+      if (engR && typeof engR.getState === "function") {
+        var stR = engR.getState();
+        if (stR.score > state.best) {
+          setBest(stR.score);
+          try { localStorage.setItem("milo-pop-best-score", String(stR.score)); } catch (e) { /* private mode */ }
+        }
+        if (cmR && typeof cmR.onRunEvent === "function") {
+          try {
+            var doneR = cmR.onRunEvent({ type: "gameover", score: stR.score, linesCleared: stR.linesCleared, bestCombo: stR.bestCombo }) || [];
+            doneR.forEach(function (mid) {
+              var md = cmR.missionById(mid);
+              if (md) toast(t("missionComplete") + " " + t(md.titleKey) + "  🪙 +" + md.reward, 3400);
+            });
+            if (doneR.length) refreshHomeChips();
+          } catch (e) { /* mission tracking must never break quitting */ }
+        }
+      }
+      relax = null;
+      $("#relax-bar").hidden = true;
+      flushChalCoins();
+      showScreen("home");
+      return;
+    }
+    flushChalCoins(); /* banked rewards land when a run ends by quitting */
+    if (adv) { var d = adv.def.diff; adv = null; showMap(d, mapWorld); return; }
+    if (chal) { var k = chal.kind; chal = null; if (k === "daily") showDaily(); else showWeekly(); return; }
+    showScreen("home");
+  }
+
+  /* ---------- Relax mode (final release) ----------
+     Same board + engine as Classic, but the run NEVER ends: when the tray
+     no longer fits, the engine's relaxRefresh() opens space (re-deal, or
+     clear the fullest row) instead of a game over. No goal bar, no fail
+     state — just a calm lines counter. Missions are evaluated once, when
+     the player quits (see quitToHome), because Relax has no gameover. */
+  var relax = null; /* { difficulty } while a Relax game is being played */
+
+  function updateRelaxBar(s) {
+    var bar = $("#relax-bar");
+    if (!bar) return;
+    if (!relax) { bar.hidden = true; return; }
+    bar.hidden = false;
+    if (!s && engine() && typeof engine().getState === "function") s = engine().getState();
+    $("#relax-lines").textContent = fmt(s ? s.linesCleared : 0);
+  }
+
+  function startRelax() {
+    if (!engineReady()) { toast(t("engineNotReady")); return; }
+    adv = null;
+    chal = null;
+    relax = { difficulty: state.difficulty };
+    flushChalCoins(); /* banked rewards land before the new game */
+    sfx("click");
+    startMusic();
+    clearTimeout(comboTimer); comboTimer = null;
+    $("#combo-badge").style.visibility = "hidden";
+    setScore(0);
+    setCombo(1);
+    setUndoCount(state.difficulty === "easy" ? 3 : 1);
+    $("#preview-ribbon").hidden = true;
+    $("#goal-bar").hidden = true;
+    state.preview = false;
+    syncFromEngine(engine().newGame(state.difficulty));
+    updateRelaxBar();
+    showScreen("board");
+  }
+
+  /* Called when the engine fires gameover during a Relax run. The refresh
+     is synchronous (the engine emits 'relax-refresh' inside it, which pops
+     the cleared cells and re-syncs). Fallback — a fresh Relax game — should
+     never be needed, but keeps Relax unbreakable. */
+  function handleRelaxGameOver() {
+    var eng = engine();
+    if (eng && typeof eng.relaxRefresh === "function") {
+      var res = eng.relaxRefresh();
+      if (res && res.ok) return;
+    }
+    startRelax();
+  }
+
+  /* ---------- Adventure mode (second release) ----------
+     Levels live in levels.js (window.MiloAdventure). The engine is reused
+     unchanged: a level is a Classic game with a goal (score or lines).
+     Goal progress is read from engine.getState() (score + linesCleared),
+     so Undo — which restores the engine snapshot — stays correct. */
+  var adv = null; /* { def, won } while an Adventure level is being played */
+  var mapDiff = store.get("advDiff", "easy");
+  var mapWorld = parseInt(store.get("advWorld", "1"), 10) || 1;
+
+  function advMod() { return window.MiloAdventure || null; }
+  function advReady() { return !!advMod() && !window.__miloLevelsMissing; }
+
+  function refreshAdvStars() {
+    var m = advMod();
+    var n = m ? m.totalStars() : 0;
+    $("#adv-total-stars").textContent = "⭐ " + fmt(n);
+    $("#map-total-stars").textContent = fmt(n);
+  }
+
+  function showMap(diff, world) {
+    if (diff) { mapDiff = diff; store.set("advDiff", diff); }
+    if (world) { mapWorld = world; store.set("advWorld", String(world)); }
+    adv = null;
+    relax = null;
+    $("#goal-bar").hidden = true;
+    $$("#map-diff-easy, #map-diff-medium").forEach(function (p) {
+      p.classList.toggle("selected", p.dataset.diff === mapDiff);
+    });
+    renderMap();
+    refreshAdvStars();
+    showScreen("map");
+  }
+
+  function renderMap() {
+    var m = advMod();
+    var strip = $("#world-strip"), path = $("#map-path");
+    strip.innerHTML = ""; path.innerHTML = "";
+    if (!m) { path.innerHTML = "<div class='map-empty'>" + t("engineNotReady") + "</div>"; return; }
+    m.WORLDS.forEach(function (w) {
+      var chip = document.createElement("button");
+      chip.className = "world-chip theme-" + w.theme + (w.id === mapWorld ? " selected" : "");
+      chip.innerHTML = "<span class='world-emoji'>" + w.emoji + "</span>" +
+        "<span class='world-name'>" + t(w.key) + "</span>" +
+        "<span class='world-stars'>⭐ " + m.worldStars(mapDiff, w.id) + "/150</span>";
+      chip.addEventListener("click", function () {
+        sfx("click");
+        mapWorld = w.id; store.set("advWorld", String(w.id));
+        renderMap();
+      });
+      strip.appendChild(chip);
+    });
+    /* 50 nodes in snake order (row 0 left->right, row 1 right->left, ...). */
+    var current = m.firstUnfinished(mapDiff);
+    for (var r = 0; r < 10; r++) {
+      for (var c = 0; c < 5; c++) {
+        var idx = r % 2 === 0 ? r * 5 + c : r * 5 + (4 - c);
+        var def = m.levelDef(mapDiff, mapWorld, idx + 1);
+        var prog = m.getProgress(def.key);
+        var unlocked = m.isUnlocked(def);
+        var node = document.createElement("button");
+        node.className = "map-node" + (unlocked ? "" : " locked") +
+          ((current && current.key === def.key) ? " current" : "");
+        node.dataset.level = def.key;
+        var starsHtml = "<span class='node-stars'>" +
+          [1, 2, 3].map(function (s) {
+            return "<span class='" + (s <= prog.stars ? "on" : "off") + "'>★</span>";
+          }).join("") + "</span>";
+        node.innerHTML = (unlocked ? "<span class='node-num'>" + def.num + "</span>"
+          : "<span class='node-lock'>🔒</span>") + starsHtml;
+        if (current && current.key === def.key) {
+          var milo = document.createElement("img");
+          milo.className = "node-milo";
+          milo.src = "assets/milo.webp";
+          milo.alt = "Milo";
+          node.appendChild(milo);
+        }
+        (function (d, ok) {
+          node.addEventListener("click", function () {
+            if (!ok) { toast(t("locked")); return; }
+            startLevel(d);
+          });
+        })(def, unlocked);
+        path.appendChild(node);
+      }
+    }
+  }
+
+  function goalText(def) {
+    return def.goalType === "lines"
+      ? t("goalClear") + " " + def.goal + " " + t("linesWord")
+      : t("goalReach") + " " + fmt(def.goal) + " " + t("points");
+  }
+
+  function updateGoalBar() {
+    var bar = $("#goal-bar");
+    var ctx = adv || chal; /* Adventure level or Daily/Weekly challenge */
+    if (!ctx) { bar.hidden = true; return; }
+    bar.hidden = false;
+    var def = ctx.def;
+    $("#goal-level-label").textContent = t("level") + " " + def.num + " • " + t("world") + " " + def.world;
+    var st = engine() && typeof engine().getState === "function" ? engine().getState() : null;
+    var score = st ? st.score : 0, lines = st ? st.linesCleared : 0;
+    $("#goal-text").textContent = goalText(def) +
+      (def.goalType === "lines" ? "  •  " + lines + "/" + def.goal
+        : "  •  " + fmt(score) + "/" + fmt(def.goal));
+    /* Fill tracks to star3 for score goals (markers at goal/star2/star3);
+       for lines goals it tracks lines to the goal (only the last marker). */
+    var max = def.goalType === "lines" ? def.goal : def.star3;
+    var cur = def.goalType === "lines" ? lines : score;
+    $("#goal-fill").style.width = Math.max(0, Math.min(100, (cur / max) * 100)) + "%";
+    var marks = [def.goal, def.star2, def.star3];
+    [1, 2, 3].forEach(function (i) {
+      var el = $("#goal-mark-" + i);
+      var pos = def.goalType === "lines" ? (i === 3 ? 100 : -1) : (marks[i - 1] / max) * 100;
+      if (pos < 0) { el.style.display = "none"; return; }
+      el.style.display = "";
+      el.style.left = "calc(" + pos.toFixed(1) + "% - 7px)";
+      el.classList.toggle("lit", cur >= marks[i - 1] ||
+        (def.goalType === "lines" && i === 3 && lines >= def.goal));
+    });
+    /* Board foot shows this level's best (not the Classic best). */
+    var best = ctx === adv && advMod() ? advMod().getProgress(def.key).best
+      : ctx === chal && chalMod() ? (chal.kind === "daily" ? chalMod().getDaily().best : chalMod().getWeekly().best)
+      : 0;
+    $("#board-best").textContent = fmt(best);
+  }
+
+  function startLevel(def) {
+    if (!engineReady()) { toast(t("engineNotReady")); return; }
+    adv = { def: def, won: false, failed: false, pending: null };
+    chal = null; /* Adventure — clear any Challenge context */
+    relax = null; /* Adventure — clear any Relax context */
+    flushChalCoins(); /* banked rewards land before the new game */
+    sfx("click");
+    startMusic();
+    clearTimeout(comboTimer); comboTimer = null;
+    $("#combo-badge").style.visibility = "hidden";
+    state.difficulty = def.difficulty;
+    store.set("difficulty", def.difficulty);
+    $$(".diff-pill").forEach(function (q) { q.classList.toggle("selected", q.dataset.diff === def.difficulty); });
+    setScore(0);
+    setCombo(1);
+    setUndoCount(def.difficulty === "easy" ? 3 : 1);
+    $("#preview-ribbon").hidden = true;
+    state.preview = false;
+    /* Adventure starts with pre-placed blocks (Block Blast style); Classic
+       and challenges always start from an empty board. */
+    var seed = null;
+    var advM = advMod();
+    if (advM && typeof advM.seedBoard === "function") {
+      try { seed = advM.seedBoard(def); } catch (e) { seed = null; }
+    }
+    /* Easy W1 L1 is the tutorial level: its cross board has a 2x2 hole,
+       so the first tray is guaranteed a 2x2 to put in it. */
+    var opts = seed ? { board: seed } : {};
+    if (def.diff === "easy" && def.world === 1 && def.num === 1) opts.firstPieceKey = "square2";
+    syncFromEngine(engine().newGame(def.difficulty, opts));
+    updateGoalBar();
+    showScreen("board");
+    if (def.diff === "easy" && def.world === 1 && def.num === 1) tutShow("adv");
+  }
+
+  /* The win/fail DECISION is synchronous (so a same-move gameover event
+     cannot override a win), but the result screen appears ~450ms later so
+     the pop animation of the winning/losing move is visible first. */
+  function checkAdvGoal() {
+    if (!adv || adv.won) return;
+    var eng = engine();
+    if (!eng || typeof eng.getState !== "function") return;
+    var m = advMod();
+    if (!m) return;
+    var st = eng.getState();
+    var stars = m.starsFor(adv.def, st.score, st.linesCleared);
+    if (stars < 1) return;
+    adv.won = true;
+    var res = m.recordResult(adv.def.key, stars, st.score);
+    refreshAdvStars();
+    sfx("gameover");
+    adv.pending = { win: true, stars: stars, score: st.score, best: res.best, isNewBest: res.isNewBest };
+    setTimeout(function () {
+      if (adv && adv.pending) { var p = adv.pending; adv.pending = null; showLevelResult(p); }
+    }, 450);
+  }
+
+  function failLevel(score) {
+    if (!adv || adv.won || adv.failed) return;
+    adv.failed = true;
+    var m = advMod();
+    var best = m ? m.getProgress(adv.def.key).best : 0;
+    sfx("gameover");
+    adv.pending = { win: false, stars: 0, score: score, best: best, isNewBest: false };
+    setTimeout(function () {
+      if (adv && adv.pending) { var p = adv.pending; adv.pending = null; showLevelResult(p); }
+    }, 450);
+  }
+
+  function showLevelResult(o) {
+    lrCtx = o.ctx || "adv"; /* 'adv' | 'daily' | 'weekly' — drives Retry/Map buttons */
+    flushChalCoins(); /* run ended — banked mission/challenge rewards land now */
+    var title = $("#lr-title");
+    var titleKey = o.titleKey || (o.win ? "levelComplete" : "levelFailed");
+    title.textContent = t(titleKey);
+    title.setAttribute("data-i18n", titleKey);
+    $$("#lr-stars .star").forEach(function (s) {
+      s.classList.toggle("lit", parseInt(s.dataset.star, 10) <= o.stars);
+    });
+    $("#lr-stars").style.display = o.win ? "" : "none";
+    $("#lr-score").textContent = fmt(o.score);
+    $("#lr-best").textContent = fmt(o.best);
+    $("#lr-best-badge").classList.toggle("show", !!o.isNewBest);
+    /* Next Level exists only for Adventure wins; challenges have no next level. */
+    $("#btn-lr-next").style.display = (o.showNext !== false && o.win) ? "" : "none";
+    showScreen("level-result");
+  }
+
+  function nextLevelDef() {
+    if (!adv) return null;
+    var m = advMod();
+    var seq = (adv.def.world - 1) * 50 + (adv.def.num - 1) + 1;
+    if (seq >= 250) return null;
+    return m.levelDef(adv.def.diff, Math.floor(seq / 50) + 1, (seq % 50) + 1);
+  }
+
+  /* ---------- Daily / Weekly Challenge + Missions (third release) ----------
+     Challenges live in challenges.js (window.MiloChallenges). A challenge is
+     a Classic game with a goal — the engine is reused unchanged, exactly
+     like an Adventure level. Rewards are banked as pending coins and only
+     flushed into the coin counter when a run ENDS (see flushChalCoins). */
+  var chal = null; /* { kind: 'daily'|'weekly', def, won, failed, pending } while playing */
+  var lrCtx = "adv"; /* which context the level-result screen belongs to */
+
+  function chalMod() { return window.MiloChallenges || null; }
+  function chalReady() { return !!chalMod() && !window.__miloChallengesMissing; }
+
+  /* Banked reward coins -> the game's coin counter. Only safe at run end:
+     the engine owns the counter while a game is running. */
+  function flushChalCoins() {
+    var m = chalMod();
+    if (m && typeof m.flushPendingCoins === "function") {
+      try { m.flushPendingCoins(); } catch (e) { /* module not ready */ }
+    }
+  }
+
+  function applyTheme() {
+    var m = chalMod();
+    if (m && typeof m.applyThemeToDom === "function") {
+      try { m.applyThemeToDom(); } catch (e) { /* module not ready */ }
+    }
+  }
+
+  function chalGoalText(def) {
+    return def.goalType === "lines"
+      ? t("goalClear") + " " + def.goal + " " + t("linesWord")
+      : t("goalReach") + " " + fmt(def.goal) + " " + t("points");
+  }
+
+  function refreshHomeChips() {
+    var m = chalMod();
+    if (!m) return;
+    try {
+      var d = m.getDaily();
+      $("#daily-streak-chip").textContent = "🔥 " + (d.streak || 0);
+      var w = m.getWeekly();
+      $("#weekly-badges-chip").textContent = "🏅 " + (w.badges ? w.badges.length : 0);
+      $("#missions-progress-chip").textContent = m.missionsDoneCount() + "/5";
+    } catch (e) { /* module not ready */ }
+    /* Collections chip — total Adventure stars (module may lag, guard it). */
+    try {
+      var a = advMod();
+      var chip = $("#coll-stars-chip");
+      if (a && chip) chip.textContent = "⭐ " + fmt(a.totalStars());
+    } catch (e) { /* module not ready */ }
+  }
+
+  function showDaily() {
+    chal = null;
+    relax = null;
+    $("#goal-bar").hidden = true;
+    refreshDailyScreen();
+    showScreen("daily");
+  }
+
+  function refreshDailyScreen() {
+    var m = chalMod();
+    if (!m) return;
+    var d = m.getDaily();
+    var def = d.def;
+    $("#daily-date").textContent = m.prettyDate(def.key);
+    $("#daily-goal").textContent = chalGoalText(def);
+    $("#daily-diff").textContent = t(def.difficulty);
+    $("#daily-reward").textContent = String(def.reward);
+    $("#daily-streak-top").textContent = String(d.streak || 0);
+    $("#daily-streak-num").textContent = String(d.streak || 0);
+    /* next reward: 7-day Golden Theme, then 30-day Star Skin */
+    var nr = $("#daily-next-reward");
+    if (!d.unlocks.star) {
+      var target = d.unlocks.golden ? 30 : 7;
+      var left = Math.max(0, target - (d.streak || 0));
+      nr.textContent = t("nextReward") + ": " + t(target === 7 ? "goldenTheme" : "starSkin") +
+        " — " + left + " " + t("daysToGo");
+    } else {
+      nr.textContent = "⭐ " + t("completed") + " — " + t("goldenTheme") + " + " + t("starSkin");
+    }
+    $("#daily-done").hidden = !d.played;
+    renderThemes();
+  }
+
+  function renderThemes() {
+    var m = chalMod();
+    var box = $("#daily-themes");
+    box.innerHTML = "";
+    if (!m) return;
+    var unlocks = m.getUnlocks();
+    var current = m.getTheme();
+    [
+      { id: "golden", key: "goldenTheme", unlocked: unlocks.golden, emoji: "🏆" },
+      { id: "star", key: "starSkin", unlocked: unlocks.star, emoji: "⭐" }
+    ].forEach(function (th) {
+      var chip = document.createElement("div");
+      chip.className = "theme-chip glass" + (current === th.id ? " equipped" : "") + (th.unlocked ? "" : " locked");
+      chip.innerHTML = "<span class='theme-emoji'>" + th.emoji + "</span>" +
+        "<span class='theme-name'>" + t(th.key) + "</span>" +
+        "<span class='theme-state'>" + (th.unlocked
+          ? (current === th.id ? t("equipped") : t("equip"))
+          : "🔒 " + t("locked")) + "</span>";
+      if (th.unlocked) {
+        chip.addEventListener("click", function () {
+          sfx("click");
+          if (current === th.id) m.setTheme("default");
+          else m.setTheme(th.id);
+          applyTheme();
+          renderThemes();
+        });
+      }
+      box.appendChild(chip);
+    });
+  }
+
+  function showWeekly() {
+    chal = null;
+    relax = null;
+    $("#goal-bar").hidden = true;
+    refreshWeeklyScreen();
+    showScreen("weekly");
+  }
+
+  function refreshWeeklyScreen() {
+    var m = chalMod();
+    if (!m) return;
+    var w = m.getWeekly();
+    var def = w.def;
+    $("#weekly-date").textContent = m.prettyDate(def.key);
+    $("#weekly-goal").textContent = chalGoalText(def);
+    $("#weekly-diff").textContent = t(def.difficulty);
+    $("#weekly-reward").textContent = String(def.reward);
+    $("#weekly-badges-top").textContent = String(w.badges ? w.badges.length : 0);
+    $("#weekly-state").textContent = w.done
+      ? "🏅 " + t("completed") + " — " + t("badge") + " ✓"
+      : "🏅 " + t("badge") + " + 🪙 " + def.reward + " • " + t("reward");
+    $("#weekly-done").hidden = !w.done;
+    $("#weekly-done-text").textContent = t("completed") + " — " + t("badge") + " ✓";
+    var box = $("#weekly-badges");
+    box.innerHTML = "";
+    if (!w.badges || w.badges.length === 0) {
+      box.innerHTML = "<span class='badge-empty'>" + t("badges") + ": 0</span>";
+    } else {
+      w.badges.forEach(function (bk) {
+        var chip = document.createElement("span");
+        chip.className = "badge-chip glass";
+        chip.textContent = "🏅 " + m.prettyDate(bk);
+        box.appendChild(chip);
+      });
+    }
+  }
+
+  function showMissions() {
+    chal = null;
+    relax = null;
+    renderMissions();
+    showScreen("missions");
+  }
+
+  function renderMissions() {
+    var m = chalMod();
+    var box = $("#missions-list");
+    box.innerHTML = "";
+    if (!m) { box.innerHTML = "<div class='map-empty'>" + t("engineNotReady") + "</div>"; return; }
+    $("#missions-done-top").textContent = m.missionsDoneCount() + "/5";
+    m.getMissions().forEach(function (ms) {
+      var row = document.createElement("div");
+      row.className = "mission-row glass" + (ms.done ? " done" : "");
+      var pct = ms.target > 0 ? Math.min(100, Math.round((ms.progress / ms.target) * 100)) : 0;
+      row.innerHTML =
+        "<span class='mission-icon'>" + ms.icon + "</span>" +
+        "<span class='mission-body'>" +
+          "<span class='mission-title'>" + t(ms.titleKey) + "</span>" +
+          "<span class='mission-desc'>" + t(ms.descKey) + "</span>" +
+          "<span class='mission-bar'><span class='mission-fill' style='width:" + pct + "%'></span></span>" +
+          "<span class='mission-prog'>" + fmt(ms.progress) + "/" + fmt(ms.target) +
+            (ms.done ? " • ✓ " + t("completed") : "") + "</span>" +
+        "</span>" +
+        "<span class='mission-reward'>🪙 +" + ms.reward + "</span>";
+      box.appendChild(row);
+    });
+  }
+
+  /* ---------- Collections (final release) ----------
+     Everything the player has earned, in one place: Adventure stars,
+     streak themes/skins (equippable here, same as the Daily screen),
+     Weekly badges, Missions progress, best score + coins. Locked items
+     show how to earn them. */
+  function showCollections() {
+    chal = null;
+    adv = null;
+    relax = null;
+    renderCollections();
+    showScreen("collections");
+  }
+
+  function renderCollections() {
+    var m = chalMod();
+    var a = advMod();
+    if (!m || !a) return;
+    var total = a.totalStars();
+    var max = a.MAX_STARS || 1500;
+    $("#coll-total-stars-top").textContent = fmt(total);
+    $("#coll-total-stars").textContent = "⭐ " + fmt(total) + " / " + fmt(max);
+    $("#coll-stars-fill").style.width = Math.max(0, Math.min(100, (total / max) * 100)) + "%";
+    $("#coll-stars-easy").textContent = "⭐ " + fmt(a.totalStars("easy")) + " / 750";
+    $("#coll-stars-medium").textContent = "⭐ " + fmt(a.totalStars("medium")) + " / 750";
+    $("#coll-best").textContent = fmt(state.best);
+    $("#coll-coins").textContent = fmt(state.coins);
+    $("#coll-missions-count").textContent = m.missionsDoneCount() + "/5";
+    var chip = $("#coll-stars-chip");
+    if (chip) chip.textContent = "⭐ " + fmt(total);
+    /* themes — Default always owned; Golden (7-day streak) / Star Skin
+       (30-day streak) locked until earned, equippable once owned. */
+    var unlocks = m.getUnlocks();
+    var current = m.getTheme();
+    var box = $("#coll-themes");
+    box.innerHTML = "";
+    [
+      { id: "default", key: "defaultTheme", unlocked: true, emoji: "🧩", earnKey: null },
+      { id: "golden", key: "goldenTheme", unlocked: unlocks.golden, emoji: "🏆", earnKey: "earnGolden" },
+      { id: "star", key: "starSkin", unlocked: unlocks.star, emoji: "⭐", earnKey: "earnStar" }
+    ].forEach(function (th) {
+      var el = document.createElement("div");
+      el.className = "theme-chip glass" + (current === th.id ? " equipped" : "") + (th.unlocked ? "" : " locked");
+      el.innerHTML = "<span class='theme-emoji'>" + th.emoji + "</span>" +
+        "<span class='theme-name'>" + t(th.key) + "</span>" +
+        "<span class='theme-state'>" + (th.unlocked
+          ? (current === th.id ? t("equipped") : t("equip"))
+          : "🔒 " + t(th.earnKey)) + "</span>";
+      if (th.unlocked) {
+        el.addEventListener("click", function () {
+          sfx("click");
+          if (current === th.id) m.setTheme("default");
+          else m.setTheme(th.id);
+          applyTheme();
+          renderCollections();
+        });
+      }
+      box.appendChild(el);
+    });
+    /* weekly badges */
+    var w = m.getWeekly();
+    var bbox = $("#coll-badges");
+    bbox.innerHTML = "";
+    if (!w.badges || w.badges.length === 0) {
+      bbox.innerHTML = "<span class='badge-empty'>" + t("noBadgesYet") + "</span>";
+    } else {
+      w.badges.forEach(function (bk) {
+        var chipEl = document.createElement("span");
+        chipEl.className = "badge-chip glass";
+        chipEl.textContent = "🏅 " + m.prettyDate(bk);
+        bbox.appendChild(chipEl);
+      });
+    }
+  }
+
+  /* ---------- Backup & Restore (final release) ----------
+     Settings section. Download = JSON file; code = same data as a
+     copy-paste string. Restoring VALIDATES first — an invalid file/code
+     shows an error and never touches existing progress. A valid restore
+     writes the keys, then the page reloads so every module re-reads its
+     own store (modules cache in memory; a reload is the only 100%-
+     correct way to pick up restored data). */
+  function backupMod() { return window.MiloBackup || null; }
+  var pendingBackup = null; /* validated data awaiting the Restore tap */
+
+  function setBackupStatus(msg, isError) {
+    var el = $("#backup-status");
+    if (!el) return;
+    el.textContent = msg || "";
+    el.classList.toggle("error", !!isError);
+    el.classList.toggle("ok", !isError && !!msg);
+  }
+
+  function previewBackup(data) {
+    var m = backupMod();
+    if (!m) { setBackupStatus(t("engineNotReady"), true); return; }
+    pendingBackup = data;
+    var s = m.summary(data);
+    var when = s.exportedAt ? (" • " + new Date(s.exportedAt).toLocaleDateString()) : "";
+    setBackupStatus("⭐ " + fmt(s.stars) + "  •  🪙 " + fmt(s.coins) + "  •  🔥 " + s.streak + "  •  🏅 " + s.badges + when, false);
+    $("#btn-backup-apply").hidden = false;
+  }
+
+  function applyPendingBackup() {
+    if (!pendingBackup) return;
+    var m = backupMod();
+    if (!m) { setBackupStatus(t("engineNotReady"), true); return; }
+    var res = m.apply(pendingBackup);
+    if (!res || !res.ok) {
+      pendingBackup = null;
+      $("#btn-backup-apply").hidden = true;
+      setBackupStatus(t("backupInvalid"), true);
+      return;
+    }
+    pendingBackup = null;
+    setBackupStatus("✓ " + t("backupRestored"), false);
+    setTimeout(function () { location.reload(); }, 900);
+  }
+
+  function resetBackupUI() {
+    pendingBackup = null;
+    var applyBtn = $("#btn-backup-apply");
+    if (applyBtn) applyBtn.hidden = true;
+    var out = $("#backup-code-out");
+    if (out) { out.hidden = true; out.value = ""; }
+    var inp = $("#backup-code-in");
+    if (inp) inp.value = "";
+    var copyBtn = $("#btn-copy-code");
+    if (copyBtn) copyBtn.hidden = true;
+    setBackupStatus("", false);
+  }
+
+  function startChallenge(kind) {
+    if (!engineReady()) { toast(t("engineNotReady")); return; }
+    var m = chalMod();
+    if (!m) { toast(t("engineNotReady")); return; }
+    var def = kind === "weekly" ? m.getWeekly().def : m.getDaily().def;
+    adv = null;
+    relax = null;
+    chal = { kind: kind, def: def, won: false, failed: false, pending: null };
+    flushChalCoins(); /* banked rewards land before the new game */
+    sfx("click");
+    startMusic();
+    clearTimeout(comboTimer); comboTimer = null;
+    $("#combo-badge").style.visibility = "hidden";
+    state.difficulty = def.difficulty;
+    store.set("difficulty", def.difficulty);
+    $$(".diff-pill").forEach(function (q) { q.classList.toggle("selected", q.dataset.diff === def.difficulty); });
+    setScore(0);
+    setCombo(1);
+    setUndoCount(def.difficulty === "easy" ? 3 : 1);
+    $("#preview-ribbon").hidden = true;
+    state.preview = false;
+    syncFromEngine(engine().newGame(def.difficulty));
+    updateGoalBar();
+    showScreen("board");
+  }
+
+  /* Same pattern as checkAdvGoal: the win/fail DECISION is synchronous,
+     the result screen appears ~450ms later so the pop animation shows first. */
+  function checkChalGoal() {
+    if (!chal || chal.won) return;
+    var eng = engine();
+    if (!eng || typeof eng.getState !== "function") return;
+    var m = chalMod();
+    if (!m) return;
+    var st = eng.getState();
+    var stars = m.starsFor(chal.def, st.score, st.linesCleared);
+    if (stars < 1) return;
+    chal.won = true;
+    if (chal.kind === "daily") m.recordDailyEnd._score = st.score;
+    else m.recordWeeklyEnd._score = st.score;
+    var res = chal.kind === "daily" ? m.recordDailyEnd(true) : m.recordWeeklyEnd(true);
+    flushChalCoins();
+    refreshHomeChips();
+    sfx("gameover");
+    chal.pending = {
+      win: true, stars: stars, score: st.score, best: res.best, isNewBest: res.isNewBest,
+      ctx: chal.kind, showNext: false,
+      titleKey: chal.kind === "daily" ? "dailyComplete" : "weeklyComplete"
+    };
+    setTimeout(function () {
+      if (chal && chal.pending) { var p = chal.pending; chal.pending = null; showLevelResult(p); }
+    }, 450);
+  }
+
+  function failChal(score) {
+    if (!chal || chal.won || chal.failed) return;
+    chal.failed = true;
+    var m = chalMod();
+    var res = null;
+    if (m) {
+      if (chal.kind === "daily") m.recordDailyEnd._score = score;
+      else m.recordWeeklyEnd._score = score;
+      res = chal.kind === "daily" ? m.recordDailyEnd(false) : m.recordWeeklyEnd(false);
+      flushChalCoins();
+      refreshHomeChips();
+    }
+    sfx("gameover");
+    chal.pending = {
+      win: false, stars: 0, score: score, best: res ? res.best : score, isNewBest: false,
+      ctx: chal.kind, showNext: false,
+      titleKey: chal.kind === "daily" ? "dailyFailed" : "weeklyFailed"
+    };
+    setTimeout(function () {
+      if (chal && chal.pending) { var p = chal.pending; chal.pending = null; showLevelResult(p); }
+    }, 450);
+  }
+
+  /* Fixed demo pattern used ONLY while the engine is missing. */
+  var DEMO_GRID = [
+    ["purple", "blue", "pink", "teal", "gold", "gold", null, null],
+    ["gold", "purple", "pink", null, null, "blue", null, null],
+    ["teal", "purple", "pink", "pink", "purple", "gold", null, null],
+    [null, null, null, null, null, null, null, null],
+    ["pink", "blue", "purple", null, "teal", null, null, null],
+    ["purple", "gold", "blue", null, "pink", "teal", null, null],
+    ["gold", "teal", null, "purple", "pink", null, null, null],
+    ["blue", "purple", "gold", null, "teal", "pink", null, null]
+  ];
+  var DEMO_PIECES = [
+    { color: "purple", cells: [[0, 0], [1, 0], [1, 1]] },
+    { color: "pink", cells: [[0, 0], [0, 1], [1, 0], [1, 1]] },
+    { color: "teal", cells: [[0, 0], [0, 1], [0, 2]] }
+  ];
+
+  /* ---------- wire buttons ---------- */
+  function init() {
+    buildBoard();
+    clearBoard();
+    renderTray([]);
+
+    /* language picker */
+    var grid = $("#lang-grid");
+    (window.MILO_LANGUAGES || []).forEach(function (l) {
+      var b = document.createElement("button");
+      b.className = "lang-btn";
+      b.setAttribute("data-lang", l.code);
+      b.textContent = l.name;
+      b.addEventListener("click", function () { setLanguage(l.code); sfx("click"); });
+      grid.appendChild(b);
+    });
+
+    /* difficulty */
+    $$(".diff-pill").forEach(function (p) {
+      p.classList.toggle("selected", p.dataset.diff === state.difficulty);
+      p.addEventListener("click", function () {
+        state.difficulty = p.dataset.diff;
+        store.set("difficulty", state.difficulty);
+        $$(".diff-pill").forEach(function (q) { q.classList.toggle("selected", q === p); });
+        setUndoCount(state.difficulty === "easy" ? 3 : 1);
+        sfx("click");
+      });
+    });
+
+    $("#btn-play").addEventListener("click", startGame);
+    $("#card-classic").addEventListener("click", startGame);
+    $("#card-adventure").addEventListener("click", function () {
+      sfx("click");
+      showMap(mapDiff, mapWorld);
+    });
+    $("#btn-board-home").addEventListener("click", quitToHome);
+    $("#btn-go-home").addEventListener("click", quitToHome);
+    $("#btn-try-again").addEventListener("click", startGame);
+
+    /* Adventure map + level result buttons */
+    $("#btn-map-home").addEventListener("click", function () { sfx("click"); showScreen("home"); });
+    $$("#map-diff-easy, #map-diff-medium").forEach(function (p) {
+      p.addEventListener("click", function () { sfx("click"); showMap(p.dataset.diff, mapWorld); });
+    });
+    $("#btn-goal-map").addEventListener("click", function () {
+      sfx("click");
+      if (chal) { var k = chal.kind; chal = null; if (k === "daily") showDaily(); else showWeekly(); return; }
+      var d = adv ? adv.def.diff : mapDiff;
+      adv = null;
+      showMap(d, mapWorld);
+    });
+    $("#btn-lr-next").addEventListener("click", function () {
+      var n = nextLevelDef();
+      if (n && advMod() && advMod().isUnlocked(n)) startLevel(n);
+      else { var d = adv ? adv.def.diff : mapDiff; adv = null; showMap(d, 1); }
+    });
+    $("#btn-lr-retry").addEventListener("click", function () {
+      if (lrCtx === "daily" || lrCtx === "weekly") { startChallenge(lrCtx); return; }
+      if (adv) startLevel(adv.def);
+    });
+    $("#btn-lr-map").addEventListener("click", function () {
+      sfx("click");
+      if (lrCtx === "daily") { chal = null; showDaily(); return; }
+      if (lrCtx === "weekly") { chal = null; showWeekly(); return; }
+      var d = adv ? adv.def.diff : mapDiff;
+      adv = null;
+      showMap(d, mapWorld);
+    });
+
+    /* Daily / Weekly / Missions cards + screens */
+    $("#card-daily").addEventListener("click", function () { sfx("click"); showDaily(); });
+    $("#card-weekly").addEventListener("click", function () { sfx("click"); showWeekly(); });
+    $("#card-missions").addEventListener("click", function () { sfx("click"); showMissions(); });
+    $("#btn-daily-home").addEventListener("click", function () { sfx("click"); showScreen("home"); });
+    $("#btn-weekly-home").addEventListener("click", function () { sfx("click"); showScreen("home"); });
+    $("#btn-missions-home").addEventListener("click", function () { sfx("click"); showScreen("home"); });
+    $("#btn-daily-play").addEventListener("click", function () { startChallenge("daily"); });
+    $("#btn-weekly-play").addEventListener("click", function () { startChallenge("weekly"); });
+
+    /* Relax + Collections cards + screens (final release) */
+    $("#card-relax").addEventListener("click", function () { startRelax(); });
+    $("#card-collections").addEventListener("click", function () { sfx("click"); showCollections(); });
+    $("#btn-coll-home").addEventListener("click", function () { sfx("click"); showScreen("home"); });
+    $("#coll-missions-card").addEventListener("click", function () { sfx("click"); showMissions(); });
+    $("#btn-coll-backup").addEventListener("click", function () {
+      sfx("click");
+      $("#settings-modal").classList.add("open");
+      updateSoundUI();
+      resetBackupUI();
+    });
+
+    $("#btn-undo").addEventListener("click", function () {
+      var eng = engine();
+      if (eng && typeof eng.undo === "function") {
+        sfx("click");
+        var res = eng.undo();
+        if (res && res.ok) syncFromEngine();
+        else if (res) setUndoCount(0);
+      } else toast(t("engineNotReady"));
+    });
+    $("#btn-hint").addEventListener("click", function () {
+      var eng = engine();
+      if (eng && typeof eng.hint === "function") {
+        sfx("click");
+        var res = eng.hint();
+        if (res) { selectPiece(res.pieceIndex); highlightTarget(res.row, res.col, res.piece); }
+      } else toast(t("engineNotReady"));
+    });
+    $("#btn-hold").addEventListener("click", function () {
+      var eng = engine();
+      if (eng && typeof eng.hold === "function") {
+        sfx("click");
+        var st = eng.getState();
+        var idx = state.selectedPiece;
+        if (idx < 0 && st && st.tray) {
+          for (var i = 0; i < st.tray.length; i++) { if (st.tray[i]) { idx = i; break; } }
+        }
+        if (idx < 0) return;
+        var res = eng.hold(idx);
+        if (res && res.ok) syncFromEngine();
+      } else toast(t("engineNotReady"));
+    });
+
+    /* settings modal */
+    $("#btn-settings").addEventListener("click", function () {
+      sfx("click");
+      $("#settings-modal").classList.add("open");
+      updateSoundUI();
+      resetBackupUI();
+    });
+    $("#btn-settings-close").addEventListener("click", function () {
+      sfx("click");
+      $("#settings-modal").classList.remove("open");
+    });
+    $("#settings-modal").addEventListener("click", function (ev) {
+      if (ev.target === this) this.classList.remove("open");
+    });
+    $("#mute-switch").addEventListener("click", function () { setMuted(!state.muted); });
+
+    /* Backup & Restore (final release) */
+    $("#btn-backup-download").addEventListener("click", function () {
+      sfx("click");
+      var m = backupMod();
+      if (!m) { setBackupStatus(t("engineNotReady"), true); return; }
+      var data = m.collect();
+      if (m.exportFile) m.exportFile(data);
+      setBackupStatus("✓ " + t("downloadBackup"), false);
+    });
+    $("#btn-backup-file").addEventListener("click", function () {
+      sfx("click");
+      $("#backup-file-input").click();
+    });
+    $("#backup-file-input").addEventListener("change", function (ev) {
+      var file = ev.target.files && ev.target.files[0];
+      ev.target.value = ""; /* allow re-picking the same file */
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function () {
+        var m = backupMod();
+        if (!m) { setBackupStatus(t("engineNotReady"), true); return; }
+        var res = m.parseText(reader.result); /* { ok, data } — JSON file */
+        if (res && res.ok) previewBackup(res.data);
+        else setBackupStatus(t("backupInvalid"), true);
+      };
+      reader.onerror = function () { setBackupStatus(t("backupInvalid"), true); };
+      reader.readAsText(file);
+    });
+    $("#btn-backup-code").addEventListener("click", function () {
+      sfx("click");
+      var m = backupMod();
+      if (!m) { setBackupStatus(t("engineNotReady"), true); return; }
+      var code = m.encodeCode(m.collect());
+      var out = $("#backup-code-out");
+      out.value = code;
+      out.hidden = false;
+      $("#btn-copy-code").hidden = false;
+      setBackupStatus("✓ " + t("showBackupCode"), false);
+    });
+    $("#btn-copy-code").addEventListener("click", function () {
+      var out = $("#backup-code-out");
+      if (!out || !out.value) return;
+      var done = function () { setBackupStatus("✓ " + t("copied"), false); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(out.value).then(done, function () { out.select(); document.execCommand("copy"); done(); });
+      } else { out.select(); document.execCommand("copy"); done(); }
+    });
+    $("#btn-restore-code").addEventListener("click", function () {
+      sfx("click");
+      var m = backupMod();
+      if (!m) { setBackupStatus(t("engineNotReady"), true); return; }
+      var raw = $("#backup-code-in").value;
+      var res = m.decodeCode(raw); /* codes are "MPP1.<base64url>" — NOT JSON, so parseText cannot read them */
+      if (res && res.ok) previewBackup(res.data);
+      else setBackupStatus(t("backupInvalid"), true);
+    });
+    $("#btn-backup-apply").addEventListener("click", function () {
+      sfx("click");
+      applyPendingBackup();
+    });
+
+    /* persisted values — the audio module is the source of truth for mute when present */
+    var am = audioMod();
+    if (am && typeof am.isMuted === "function") { state.muted = !!am.isMuted(); }
+    setCoins(state.coins);
+    setBest(state.best);
+    setUndoCount(state.difficulty === "easy" ? 3 : 1);
+    applyLanguage();
+    refreshAdvStars();
+    applyTheme();
+    refreshHomeChips();
+
+    /* subscribe to engine events (Agent 1: MiloPop.onEvent) */
+    var eng = engine();
+    if (eng && typeof eng.onEvent === "function") {
+      try {
+        eng.onEvent(function (e) {
+          if (!e) return;
+          /* Missions track every run (Classic + Adventure + Daily + Weekly).
+             Completed missions bank their coin reward (flushed at run end).
+             EXCEPT a Relax gameover: Relax refreshes instead of ending, and
+             feeding each refresh's gameover would count the run's cumulative
+             lines over and over. Relax missions are evaluated once, at quit. */
+          var cm = chalMod();
+          var isRelaxOver = relax && e.type === "gameover";
+          if (cm && typeof cm.onRunEvent === "function" && !isRelaxOver) {
+            var doneMissions = [];
+            try { doneMissions = cm.onRunEvent(e) || []; } catch (err) { doneMissions = []; }
+            doneMissions.forEach(function (mid) {
+              var md = cm.missionById(mid);
+              if (md) toast(t("missionComplete") + " " + t(md.titleKey) + "  🪙 +" + md.reward, 3400);
+            });
+            if (doneMissions.length) refreshHomeChips();
+          }
+          if (e.type === "newgame") { syncFromEngine(e.state); updateGoalBar(); }
+          else if (e.type === "place") { tutDismiss(); syncFromEngine(); updateGoalBar(); checkAdvGoal(); checkChalGoal(); }
+          else if (e.type === "clear") {
+            var cellsList = (e.cells || []).map(function (cc) { return [cc.row, cc.col]; });
+            var gained = (typeof e.score === "number") ? e.score - state.score : 0;
+            if (e.combo > 1) setCombo(e.combo, gained);
+            popCells(cellsList, function () { syncFromEngine(); updateGoalBar(); });
+            setScore(e.score || 0);
+            setCoins(e.coins || 0);
+            updateGoalBar(); checkAdvGoal(); checkChalGoal();
+          } else if (e.type === "tray") { syncFromEngine(); }
+          else if (e.type === "undo") { syncFromEngine(); updateGoalBar(); if (e.undosLeft !== undefined) setUndoCount(e.undosLeft); }
+          else if (e.type === "hold") { syncFromEngine(); }
+          else if (e.type === "hint") {
+            if (e.hint) { selectPiece(e.hint.pieceIndex); highlightTarget(e.hint.row, e.hint.col, e.hint.piece); }
+          } else if (e.type === "relax-refresh") {
+            /* Relax: the engine opened space. Pop the cleared cells first,
+               then re-sync — the pop is the visible "refresh". */
+            var cellsList = (e.cells || []).map(function (cc) { return [cc.row, cc.col]; });
+            popCells(cellsList, function () { syncFromEngine(); });
+            toast(t("relaxRefresh"), 2200);
+          } else if (e.type === "gameover") {
+            tutHide(); /* leaving the board — the tutorial (if any) stays un-done */
+            /* Mission rewards banked by onRunEvent() above must land now:
+               a win can be followed by a late gameover (the player keeps
+               placing for a moment after the win), and the win-time flush
+               already ran — without this, those coins stay pending until
+               the next run ends. Relax is excluded: its gameovers only
+               refresh the board and feed no missions. */
+            if (!relax) flushChalCoins();
+            if (adv) { if (!adv.won) failLevel(e.score || 0); /* won levels ignore gameover */ }
+            else if (chal) { if (!chal.won) failChal(e.score || 0); /* won challenges ignore gameover */ }
+            else if (relax) { handleRelaxGameOver(); /* never ends — refresh instead */ }
+            else { flushChalCoins(); showGameOver({ score: e.score, best: e.bestScore, isNewBest: e.isNewBest, stars: 3 });
+              /* WEB TEST COPY: our own Purrfect Pet promo video shows after
+                 EVERY Classic run end (no AdMob on the web to alternate
+                 with). If the video is unavailable, nothing shows and the
+                 game-over screen simply stays. */
+              try { if (window.MiloPromoAd) window.MiloPromoAd.maybeShow(); } catch (err) {} }
+          }
+        });
+      } catch (err) { /* engine event API differs — MiloPopUI calls still work */ }
+    }
+    /* opening flow: Terms buttons + Settings Terms link (re-read anytime) */
+    $("#btn-terms-accept").addEventListener("click", acceptTerms);
+    $("#btn-terms-decline").addEventListener("click", declineTerms);
+    $("#btn-open-terms").addEventListener("click", function () {
+      sfx("click");
+      $("#settings-modal").classList.remove("open");
+      showTerms(true);
+    });
+
+    setupEngineDrag();
+    startSplash(); /* splash (every launch) -> Terms (first launch only) -> Home */
+  }
+
+  /* ---------- public UI API for the engine (Agent 1) ---------- */
+  window.MiloPopUI = {
+    showScreen: showScreen,
+    renderBoard: renderBoard,
+    renderTray: renderTray,
+    clearBoard: clearBoard,
+    popCells: popCells,
+    setScore: setScore,
+    setCoins: setCoins,
+    setBest: setBest,
+    setCombo: setCombo,
+    setUndoCount: setUndoCount,
+    showGameOver: showGameOver,
+    showMap: showMap,
+    startLevel: startLevel,
+    showDaily: showDaily,
+    showWeekly: showWeekly,
+    showMissions: showMissions,
+    showCollections: showCollections,
+    startChallenge: startChallenge,
+    startRelax: startRelax,
+    getChallenge: function () { return chal; },
+    getAdventure: function () { return adv; },
+    getRelax: function () { return relax; },
+    toast: toast,
+    applyLanguage: applyLanguage,
+    getDifficulty: function () { return state.difficulty; },
+    isMuted: function () { return state.muted; },
+    getState: function () {
+      return { lang: state.lang, muted: state.muted, difficulty: state.difficulty,
+               coins: state.coins, best: state.best, score: state.score, preview: state.preview };
+    }
+  };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+</html>

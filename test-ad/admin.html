@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milo Pop Puzzle — Admin Panel</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: "Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: #fff;
+    background:
+      radial-gradient(90% 45% at 50% -5%, rgba(216, 180, 254, 0.55) 0%, rgba(216, 180, 254, 0) 60%),
+      radial-gradient(70% 40% at 92% 92%, rgba(45, 212, 191, 0.5) 0%, rgba(45, 212, 191, 0) 60%),
+      linear-gradient(170deg, #2e085e 0%, #5b21b6 34%, #7c3aed 58%, #6d28d9 78%, #4c1d95 100%);
+    background-attachment: fixed;
+    padding: 16px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.20), rgba(255,255,255,0.08));
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 18px; padding: 20px; margin-bottom: 14px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  }
+  h1 { font-size: 24px; text-align: center; margin: 10px 0 4px; }
+  .sub { text-align: center; color: #e9d5ff; font-size: 14px; margin-bottom: 18px; }
+  .logo { text-align: center; }
+  .logo img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid #ffd23e; box-shadow: 0 0 24px rgba(255,210,62,0.55); }
+  .logo .fallback { font-size: 52px; display: none; }
+  label { display: block; font-weight: 700; margin: 12px 0 6px; }
+  input {
+    width: 100%; padding: 13px; font-size: 17px; color: #2e085e;
+    border: 2px solid #ffd23e; border-radius: 12px; outline: none; background: rgba(255,255,255,0.95);
+  }
+  input:focus { border-color: #fff3b0; }
+  button {
+    width: 100%; padding: 14px; font-size: 18px; font-weight: 800; color: #4a2c00;
+    background: linear-gradient(180deg, #fff8c4 0%, #ffd23e 55%, #f59e0b 100%);
+    border: none; border-radius: 12px; margin-top: 16px; cursor: pointer;
+  }
+  button:active { transform: scale(.98); }
+  .err { color: #fecaca; font-weight: 700; text-align: center; margin-top: 10px; display: none; }
+  .badge { display: inline-block; background: #f59e0b; color: #fff; font-weight: 800; padding: 4px 12px; border-radius: 20px; font-size: 14px; }
+  .badge.warn { background: #ef4444; }
+  .badge.ok { background: #22c55e; }
+  h2 { font-size: 19px; margin-bottom: 8px; }
+  p, li { font-size: 15px; line-height: 1.6; }
+  ul { padding-left: 20px; }
+  a { color: #fde68a; word-break: break-all; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .logout { width: auto; padding: 8px 16px; font-size: 14px; margin-top: 0; background: rgba(255,255,255,0.85); color: #4c1d95; }
+  .small { font-size: 13px; color: #e9d5ff; }
+  .field-row { display: flex; gap: 8px; }
+  .field-row input { flex: 1; min-width: 0; }
+  .copy-btn { width: auto; padding: 13px 14px; font-size: 15px; margin-top: 0; background: rgba(255,255,255,0.9); color: #4c1d95; border: 2px solid #ffd23e; }
+  .hidden { display: none; }
+  .stat { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .stat:last-child { border-bottom: none; }
+  .stat b { text-align: right; }
+  .bar { height: 10px; border-radius: 6px; background: rgba(255,255,255,0.25); overflow: hidden; margin: 4px 0 10px; }
+  .bar > div { height: 100%; background: linear-gradient(90deg, #ffd23e, #f59e0b); border-radius: 6px; }
+  .mission { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  .mission:last-child { border-bottom: none; }
+  .done { color: #86efac; font-weight: 800; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 6px; }
+  th, td { padding: 5px 4px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.15); }
+  th:first-child, td:first-child { text-align: left; }
+  .danger { background: linear-gradient(180deg, rgba(239,68,68,0.35), rgba(239,68,68,0.18)); border-color: rgba(252,165,165,0.6); }
+  .danger button { background: linear-gradient(180deg, #fca5a5, #ef4444); color: #fff; }
+  .danger button.armed { background: linear-gradient(180deg, #ef4444, #b91c1c); }
+  .note { background: rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div id="loginBox" class="card">
+    <div class="logo">
+      <img src="assets/milo.webp" alt="Milo" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block';">
+      <span id="logoFallback" class="fallback">🐱</span>
+    </div>
+    <h1>Milo Pop Puzzle</h1>
+    <div class="sub">Admin Panel — only for the game owner</div>
+    <label>Username</label>
+    <div class="field-row">
+      <input id="u" type="text" value="admin" autocomplete="username">
+      <button type="button" class="copy-btn" onclick="copyField('u', this)">📋 Copy</button>
+    </div>
+    <label>Password</label>
+    <div class="field-row">
+      <input id="p" type="password" placeholder="••••••••••" autocomplete="current-password">
+      <button type="button" class="copy-btn" onclick="togglePass(this)">👁</button>
+      <button type="button" class="copy-btn" onclick="copyField('p', this)">📋 Copy</button>
+    </div>
+    <p id="copyMsg" class="small" style="text-align:center;margin-top:8px;min-height:18px;"></p>
+    <button onclick="doLogin()">Login</button>
+    <div id="err" class="err">Wrong username or password</div>
+    <p class="small" style="text-align:center;margin-top:14px;">Only for the game owner — Shan Akbar</p>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dash" class="hidden">
+    <div class="card">
+      <div class="row">
+        <h2>🐱 Milo Pop Puzzle — Admin</h2>
+        <button class="logout" onclick="doLogout()">Logout</button>
+      </div>
+      <p>Version: <span class="badge">v1.0</span></p>
+      <p class="small">Game link: <a href="https://shanbinakbar786.github.io/milo-pop-puzzle/" target="_blank">shanbinakbar786.github.io/milo-pop-puzzle</a></p>
+      <p style="margin-top:8px;"><button class="logout" onclick="renderStats()" style="width:auto;">🔄 Refresh stats</button></p>
+    </div>
+
+    <div class="card">
+      <h2>ℹ️ What this panel shows</h2>
+      <p class="small">These numbers come from <b>this device only</b> — the game saves progress on the player's own phone/computer (localStorage). There is no server, so this panel cannot see other players. To see your own progress, open this panel on the same device and browser where you play. To move progress to another device, use Backup in the game's Settings.</p>
+    </div>
+
+    <div class="card">
+      <h2>🎮 Classic</h2>
+      <div class="stat"><span>Games played</span><b id="stClassicGames">—</b></div>
+      <div class="stat"><span>Best score</span><b id="stClassicBest">—</b></div>
+      <div class="stat"><span>Total coins 🪙</span><b id="stCoins">—</b></div>
+      <div class="stat"><span>Total lines cleared</span><b id="stTotalLines">—</b></div>
+      <div class="stat"><span>Best single-game score</span><b id="stBestScoreGame">—</b></div>
+      <div class="stat"><span>Most lines in one game</span><b id="stBestLinesGame">—</b></div>
+      <div class="stat"><span>Best combo</span><b id="stBestCombo">—</b></div>
+    </div>
+
+    <div class="card">
+      <h2>🗺️ Adventure — 500 levels</h2>
+      <div class="stat"><span>Total stars ⭐</span><b id="stStars">—</b></div>
+      <div class="bar"><div id="stStarsBar" style="width:0%"></div></div>
+      <div class="stat"><span>Easy stars</span><b id="stStarsEasy">—</b></div>
+      <div class="stat"><span>Medium stars</span><b id="stStarsMedium">—</b></div>
+      <div class="stat"><span>Levels completed</span><b id="stLevelsDone">—</b></div>
+      <div class="stat"><span>Worlds completed</span><b id="stWorldsDone">—</b></div>
+      <div class="stat"><span>Current level — Easy</span><b id="stCurrentEasy">—</b></div>
+      <div class="stat"><span>Current level — Medium</span><b id="stCurrentMedium">—</b></div>
+      <table id="stWorldTable">
+        <tr><th>World</th><th>Easy ⭐</th><th>Medium ⭐</th></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>📅 Daily &amp; Weekly</h2>
+      <div class="stat"><span>Current streak 🔥</span><b id="stStreak">—</b></div>
+      <div class="stat"><span>Best streak</span><b id="stBestStreak">—</b></div>
+      <div class="stat"><span>Last daily played</span><b id="stLastPlayed">—</b></div>
+      <div class="stat"><span>Today's Daily</span><b id="stDailyToday">—</b></div>
+      <div class="stat"><span>Today's Daily best score</span><b id="stDailyBest">—</b></div>
+      <div class="stat"><span>Weekly badges 🏅</span><b id="stBadges">—</b></div>
+      <div class="stat"><span>Badge weeks</span><b id="stBadgeWeeks">—</b></div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 Missions</h2>
+      <p style="margin-bottom:6px;"><b id="stMissionsCount">—</b></p>
+      <div id="stMissions"></div>
+    </div>
+
+    <div class="card">
+      <h2>😌 Relax</h2>
+      <p class="small">Relax mode has no separate saved stats — its best score feeds the Classic best score and its lines feed Total lines cleared above.</p>
+      <div class="stat"><span>Best score (shared with Classic)</span><b id="stRelaxBest">—</b></div>
+      <div class="stat"><span>Lines cleared (shared total)</span><b id="stRelaxLines">—</b></div>
+    </div>
+
+    <div class="card">
+      <h2>🎨 Collections &amp; Themes</h2>
+      <div class="stat"><span>Theme equipped</span><b id="stTheme">—</b></div>
+      <div class="stat"><span>Golden Theme (7-day streak)</span><b id="stGolden">—</b></div>
+      <div class="stat"><span>Star Skin (30-day streak)</span><b id="stStar">—</b></div>
+      <div class="stat"><span>Coins waiting to collect</span><b id="stPendingCoins">—</b></div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Settings (this device)</h2>
+      <div class="stat"><span>Language</span><b id="stLang">—</b></div>
+      <div class="stat"><span>Difficulty</span><b id="stDiff">—</b></div>
+      <div class="stat"><span>Sound muted</span><b id="stMuted">—</b></div>
+      <div class="stat"><span>Adventure map tab</span><b id="stAdvTab">—</b></div>
+      <div class="stat"><span>Terms accepted</span><b id="stTerms">—</b></div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Google Analytics</h2>
+      <p>Status: <span class="badge warn">Not connected yet</span></p>
+      <p style="margin-top:8px;">This game has <b>no Analytics yet</b> — no Measurement ID, no traffic numbers here. Worldwide traffic (how many people play, from which country) can only be seen once Google Analytics is connected, like it is for Purrfect Pet. This panel shows only this device's own play data (above).</p>
+    </div>
+
+    <div class="card">
+      <h2>🔗 Links</h2>
+      <p>🌐 Web game: <a href="https://shanbinakbar786.github.io/milo-pop-puzzle/" target="_blank">shanbinakbar786.github.io/milo-pop-puzzle</a></p>
+      <p>📱 APK: v1 built (7.3 MB, fully offline) — download: <a href="https://drive.google.com/file/d/1ISUIBQ_jdfaiPm7l_e4xPNYoL-1wcLO9/view?usp=drivesdk" target="_blank">milo-pop-puzzle-v1.apk</a> (installs on Android; a new APK is needed for each new version — the web link updates itself).</p>
+      <p>💾 Backup: open the game → Settings → Backup &amp; Restore (download a file or copy a code).</p>
+    </div>
+
+    <div class="card danger">
+      <h2>⚠️ Reset all progress</h2>
+      <p class="small">Erases ALL game progress on this device: Classic best score, coins and games played, all Adventure stars, Daily streak, Weekly badges, Missions and themes. Language, sound and difficulty settings are kept. This cannot be undone — make a backup first (game → Settings → Backup).</p>
+      <button id="resetBtn" onclick="doReset()">🗑️ Reset all progress</button>
+      <p id="resetMsg" class="small" style="text-align:center;margin-top:10px;min-height:18px;"></p>
+    </div>
+  </div>
+
+</div>
+<script>
+"use strict";
+/* Same login as the Purrfect Pet admin panel (same password hash). Client-side
+   gate only — the hash is visible in page source, so this panel holds no secrets. */
+var PASS_HASH = "2756dca7eccc94ef7d8ed9fb69ffb430d5305a8afc6cfaa90c25e50a065453f9";
+
+var ENGINE_KEYS = ["milo-pop-best-score", "milo-pop-coins", "milo-pop-games-played"];
+var PROGRESS_KEYS = ENGINE_KEYS.concat([
+  "mpp_adv_v1", "mpp_chal_v1", "mpp_coins", "mpp_best",
+  "mpp_advDiff", "mpp_advWorld", "mpp_tut_classic", "mpp_tut_adv"
+]);
+
+var MISSIONS = [
+  { id: "lines5",    icon: "🧹", title: "Line Master",  desc: "Clear 5 lines in one game",    target: 5,    reward: 30 },
+  { id: "combo3",    icon: "💥", title: "Combo Star",   desc: "Make a 3× combo",              target: 3,    reward: 50 },
+  { id: "score1000", icon: "🏆", title: "Score Hero",   desc: "Score 1000 in one game",       target: 1000, reward: 100 },
+  { id: "streak7",   icon: "🔥", title: "Week of Play", desc: "Play 7 days in a row",         target: 7,    reward: 100 },
+  { id: "lines50",   icon: "💪", title: "Line Crusher", desc: "Clear 50 lines in total",      target: 50,   reward: 75 }
+];
+var LANG_NAMES = { en: "English", ur: "Urdu", es: "Spanish", fr: "French", pt: "Portuguese", de: "German", ar: "Arabic", zh: "Chinese (Simplified)", hi: "Hindi", tr: "Turkish" };
+
+function $(id) { return document.getElementById(id); }
+function readRaw(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function readInt(key, fallback) {
+  var v = parseInt(readRaw(key), 10);
+  return isNaN(v) ? fallback : v;
+}
+function readJson(key) {
+  var raw = readRaw(key);
+  if (!raw) return null;
+  try { var p = JSON.parse(raw); return (p && typeof p === "object") ? p : null; }
+  catch (e) { return null; }
+}
+function setText(id, val) { var el = $(id); if (el) el.textContent = val; }
+function num(n) { return (typeof n === "number" && isFinite(n)) ? n.toLocaleString("en-US") : "0"; }
+
+function pad(n) { return (n < 10 ? "0" : "") + n; }
+function dateKey(d) {
+  d = d || new Date();
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+}
+function addDays(key, n) {
+  var p = String(key || "").split("-");
+  var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+  d.setDate(d.getDate() + n);
+  return dateKey(d);
+}
+function displayStreak(chal) {
+  if (!chal || !chal.daily) return 0;
+  var last = chal.daily.lastPlayed || "";
+  var today = dateKey();
+  if (!last) return 0;
+  if (last === today || last === addDays(today, -1)) return chal.daily.streak || 0;
+  return 0;
+}
+
+function missionProgress(chal, id) {
+  var d = chal || {};
+  switch (id) {
+    case "lines5":    return Math.min(5, d.bestLinesGame || 0);
+    case "combo3":    return Math.min(3, d.bestCombo || 0);
+    case "score1000": return Math.min(1000, d.bestScoreGame || 0);
+    case "streak7":   return Math.min(7, displayStreak(chal));
+    case "lines50":   return Math.min(50, d.totalLines || 0);
+  }
+  return 0;
+}
+
+function renderStats() {
+  /* ---- Classic (engine keys are the source of truth; mpp_ mirrors are the fallback) ---- */
+  var best = readInt("milo-pop-best-score", readInt("mpp_best", 0));
+  var coins = readInt("milo-pop-coins", readInt("mpp_coins", 0));
+  var games = readInt("milo-pop-games-played", 0);
+  var chal = readJson("mpp_chal_v1") || {};
+  var adv = readJson("mpp_adv_v1") || {};
+  var prog = (adv && adv.prog) || {};
+
+  setText("stClassicGames", num(games));
+  setText("stClassicBest", num(best));
+  setText("stCoins", num(coins) + " 🪙");
+  setText("stTotalLines", num(chal.totalLines || 0));
+  setText("stBestScoreGame", num(chal.bestScoreGame || 0));
+  setText("stBestLinesGame", num(chal.bestLinesGame || 0));
+  setText("stBestCombo", "×" + (chal.bestCombo || 0));
+
+  /* ---- Adventure ---- */
+  var starsEasy = 0, starsMedium = 0, doneEasy = 0, doneMedium = 0;
+  var worldStars = { easy: [0, 0, 0, 0, 0], medium: [0, 0, 0, 0, 0] };
+  var worldDone = { easy: [0, 0, 0, 0, 0], medium: [0, 0, 0, 0, 0] };
+  Object.keys(prog).forEach(function (k) {
+    var p = prog[k] || {};
+    var s = p.s || 0;
+    var parts = k.split("-"); /* diff-world-num */
+    if (parts.length !== 3) return;
+    var diff = parts[0], w = parseInt(parts[1], 10);
+    if ((diff !== "easy" && diff !== "medium") || !w || w < 1 || w > 5) return;
+    if (diff === "easy") { starsEasy += s; if (s >= 1) doneEasy++; }
+    else { starsMedium += s; if (s >= 1) doneMedium++; }
+    worldStars[diff][w - 1] += s;
+    if (s >= 1) worldDone[diff][w - 1]++;
+  });
+  var starsTotal = starsEasy + starsMedium;
+  setText("stStars", num(starsTotal) + " / 1,500");
+  $("stStarsBar").style.width = Math.min(100, starsTotal / 15) + "%";
+  setText("stStarsEasy", num(starsEasy) + " / 750");
+  setText("stStarsMedium", num(starsMedium) + " / 750");
+  setText("stLevelsDone", "Easy " + doneEasy + " / 250  •  Medium " + doneMedium + " / 250");
+  var worldsDone = 0;
+  ["easy", "medium"].forEach(function (d) {
+    for (var w = 0; w < 5; w++) if (worldDone[d][w] === 50) worldsDone++;
+  });
+  setText("stWorldsDone", worldsDone + " / 10");
+  setText("stCurrentEasy", currentLevel(prog, "easy"));
+  setText("stCurrentMedium", currentLevel(prog, "medium"));
+  var tbl = $("stWorldTable");
+  while (tbl.rows.length > 1) tbl.deleteRow(1);
+  for (var w = 1; w <= 5; w++) {
+    var tr = tbl.insertRow(-1);
+    tr.insertCell(0).textContent = "World " + w;
+    tr.insertCell(1).textContent = "⭐ " + worldStars.easy[w - 1] + " / 150";
+    tr.insertCell(2).textContent = "⭐ " + worldStars.medium[w - 1] + " / 150";
+  }
+
+  /* ---- Daily & Weekly ---- */
+  var streak = displayStreak(chal);
+  setText("stStreak", "🔥 " + streak);
+  setText("stBestStreak", "— (the game does not save a best streak)");
+  var lastPlayed = (chal.daily && chal.daily.lastPlayed) || "";
+  setText("stLastPlayed", lastPlayed || "— (never played)");
+  var today = dateKey();
+  var playedToday = chal.daily && chal.daily.played ? chal.daily.played[today] : undefined;
+  setText("stDailyToday", !playedToday ? "Not played yet today" : (playedToday === "won" ? "✅ Won today" : "Played today (not won)"));
+  var dailyBest = (chal.daily && chal.daily.best && chal.daily.best[today]) || 0;
+  setText("stDailyBest", num(dailyBest));
+  var badges = (chal.weekly && chal.weekly.badges) || [];
+  setText("stBadges", "🏅 " + badges.length);
+  setText("stBadgeWeeks", badges.length ? badges.join(", ") : "— (no weekly badge yet)");
+
+  /* ---- Missions ---- */
+  var doneCount = 0;
+  var html = "";
+  MISSIONS.forEach(function (m) {
+    var p = missionProgress(chal, m.id);
+    var done = !!((chal.missions && chal.missions[m.id]) || p >= m.target);
+    if (done) doneCount++;
+    var pct = Math.min(100, Math.round(p / m.target * 100));
+    html += '<div class="mission"><b>' + m.icon + " " + m.title + '</b> — ' + m.desc +
+      ' <span class="' + (done ? "done" : "") + '">' + (done ? "✓ Done" : num(p) + " / " + num(m.target)) + "</span>" +
+      ' <span class="small">(+🪙 ' + m.reward + ")</span>" +
+      '<div class="bar"><div style="width:' + pct + '%"></div></div></div>';
+  });
+  $("stMissions").innerHTML = html;
+  setText("stMissionsCount", doneCount + " / 5 completed");
+
+  /* ---- Relax (shares the engine totals — no separate save) ---- */
+  setText("stRelaxBest", num(best));
+  setText("stRelaxLines", num(chal.totalLines || 0));
+
+  /* ---- Collections & Themes ---- */
+  var theme = (chal.theme || "default");
+  setText("stTheme", theme === "default" ? "Default" : (theme === "golden" ? "Golden Theme" : "Star Skin"));
+  var unlocks = chal.unlocks || {};
+  setText("stGolden", unlocks.golden ? "✅ Unlocked" : "🔒 Locked — win a 7-day streak");
+  setText("stStar", unlocks.star ? "✅ Unlocked" : "🔒 Locked — win a 30-day streak");
+  setText("stPendingCoins", num(chal.pendingCoins || 0) + " 🪙");
+
+  /* ---- Settings ---- */
+  var lang = readRaw("mpp_lang") || "en";
+  setText("stLang", LANG_NAMES[lang] || lang);
+  setText("stDiff", readRaw("mpp_difficulty") || "easy");
+  setText("stMuted", (readRaw("mpp_muted") === "true") ? "Yes 🔇" : "No 🔊");
+  var advDiff = readRaw("mpp_advDiff") || "easy";
+  var advWorld = readRaw("mpp_advWorld") || "1";
+  setText("stAdvTab", advDiff + " — World " + advWorld);
+  setText("stTerms", (readRaw("mpp_terms_v1") === "accepted") ? "Yes ✅" : "No");
+}
+
+function currentLevel(prog, diff) {
+  for (var seq = 0; seq < 250; seq++) {
+    var world = Math.floor(seq / 50) + 1;
+    var n = (seq % 50) + 1;
+    var p = prog[diff + "-" + world + "-" + n];
+    if (!p || !(p.s >= 1)) return "World " + world + ", Level " + n;
+  }
+  return "All 250 complete! 🎉";
+}
+
+/* ---------------- login (same pattern as the Purrfect Pet panel) ---------------- */
+async function sha256hex(str) {
+  var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.prototype.map.call(new Uint8Array(buf), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+}
+async function copyField(id, btn) {
+  var el = $(id);
+  var val = el.value;
+  var msg = $("copyMsg");
+  if (!val) { msg.textContent = id === "u" ? "Type the username first" : "Type the password first"; return; }
+  try { await navigator.clipboard.writeText(val); }
+  catch (e) { el.select(); document.execCommand("copy"); el.blur(); }
+  var old = btn.textContent;
+  btn.textContent = "✓ Copied";
+  msg.textContent = (id === "u" ? "Username" : "Password") + " copied ✓";
+  setTimeout(function () { btn.textContent = old; msg.textContent = ""; }, 2000);
+}
+function togglePass(btn) {
+  var el = $("p");
+  var show = el.type === "password";
+  el.type = show ? "text" : "password";
+  btn.textContent = show ? "🙈" : "👁";
+}
+async function doLogin() {
+  var u = $("u").value.trim();
+  var p = $("p").value;
+  var err = $("err");
+  if (!window.crypto || !crypto.subtle) { err.textContent = "Browser is not secure (HTTPS needed)"; err.style.display = "block"; return; }
+  var h = await sha256hex(p);
+  if (u === "admin" && h === PASS_HASH) {
+    sessionStorage.setItem("mpp_admin", "1");
+    showDash();
+  } else {
+    err.style.display = "block";
+  }
+}
+function showDash() {
+  $("loginBox").classList.add("hidden");
+  $("dash").classList.remove("hidden");
+  renderStats();
+}
+function doLogout() {
+  sessionStorage.removeItem("mpp_admin");
+  $("dash").classList.add("hidden");
+  $("loginBox").classList.remove("hidden");
+  $("p").value = "";
+}
+
+/* ---------------- reset (two-step confirm; keeps language/sound/difficulty/terms) ---------------- */
+var resetArmed = false, resetTimer = null;
+function doReset() {
+  var btn = $("resetBtn");
+  var msg = $("resetMsg");
+  if (!resetArmed) {
+    resetArmed = true;
+    btn.textContent = "⚠️ Click again to confirm — ALL progress will be erased";
+    btn.classList.add("armed");
+    msg.textContent = "Make a backup first if you want to keep this progress.";
+    resetTimer = setTimeout(function () {
+      resetArmed = false;
+      btn.textContent = "🗑️ Reset all progress";
+      btn.classList.remove("armed");
+      msg.textContent = "";
+    }, 5000);
+    return;
+  }
+  clearTimeout(resetTimer);
+  resetArmed = false;
+  btn.textContent = "🗑️ Reset all progress";
+  btn.classList.remove("armed");
+  try {
+    PROGRESS_KEYS.forEach(function (k) { localStorage.removeItem(k); });
+  } catch (e) { /* private mode */ }
+  renderStats();
+  msg.textContent = "✅ All progress erased on this device.";
+}
+
+$("p").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
+if (sessionStorage.getItem("mpp_admin") === "1") showDash();
+</script>
+</body>
+</html>
